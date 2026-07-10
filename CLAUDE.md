@@ -15,7 +15,10 @@ patterns and architecture decisions, not generic Node.js approaches.
   src/lib/database/prisma.module.ts + prisma.service.ts
   src/lib/mail/mail.module.ts + mail.service.ts
 - Mark infrastructure modules @Global() and import once in AppModule
-- Feature modules go in src/module/<name>/
+- Feature modules go in src/modules/<name>/ with this internal layout:
+  <name>.module.ts, <name>.controller.ts, <name>.service.ts,
+  dto/ (request/response DTOs), entities/ (domain types).
+  Keep DTOs and entities inside the feature — do not scatter them at src root
 - Shared guards, interceptors, decorators go in src/common/
 - Use Nest CLI: nest g module / nest g service / nest g controller
 
