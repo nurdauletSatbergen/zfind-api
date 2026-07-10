@@ -12,8 +12,8 @@ patterns and architecture decisions, not generic Node.js approaches.
 - Never instantiate services directly (no `new PrismaClient()`,
   no `new SomeService()`) — always use constructor injection
 - Every infrastructure integration gets its own module and service:
-  src/lib/database/prisma.module.ts + prisma.service.ts
-  src/lib/mail/mail.module.ts + mail.service.ts
+  src/libs/database/prisma.module.ts + prisma.service.ts
+  src/libs/mail/mail.module.ts + mail.service.ts
 - Mark infrastructure modules @Global() and import once in AppModule
 - Feature modules go in src/modules/<name>/ with this internal layout:
   <name>.module.ts, <name>.controller.ts, <name>.service.ts,
