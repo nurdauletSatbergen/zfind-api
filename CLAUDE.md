@@ -19,7 +19,7 @@ patterns and architecture decisions, not generic Node.js approaches.
   <name>.module.ts, <name>.controller.ts, <name>.service.ts,
   dto/ (request/response DTOs), entities/ (domain types).
   Keep DTOs and entities inside the feature — do not scatter them at src root
-- Shared guards, interceptors, decorators go in src/common/
+- Shared guards, interceptors, decorators go in src/shared/
 - Use Nest CLI: nest g module / nest g service / nest g controller
 
 ## Skills
