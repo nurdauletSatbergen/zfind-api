@@ -1,4 +1,4 @@
-# Hakcathon Backend
+# zfind Backend
 
 NestJS 11 project. Express adapter.
 
