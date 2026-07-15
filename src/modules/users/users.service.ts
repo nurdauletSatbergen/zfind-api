@@ -13,7 +13,7 @@ export class UsersService {
     if (user) throw new ConflictException('User with this email already exists');
 
     try {
-      return this.prisma.user.create({ data })
+      return await this.prisma.user.create({ data })
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('User with this email already exists');

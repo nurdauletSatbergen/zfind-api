@@ -1,6 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../generated/prisma/client';
@@ -15,7 +15,7 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<Omit<User, "password"> | null> {
     const user = await this.usersService.findOne({ email });
-    if (user && user.password == pass) {
+    if (user && await compare(pass, user.password)) {
       const { password, ...result } = user;
       return result;
     }
@@ -31,16 +31,12 @@ export class AuthService {
 
 
   async signUp(createUserDto: CreateUserDto) {
-    const existingUser = await this.usersService.findOne({ email: createUserDto.email });
-    if (existingUser) throw new ConflictException(`User with email ${createUserDto.email} already exists`);
     const hashedPassword = await hash(createUserDto.password, 10);
     const user = await this.usersService.create({
       ...createUserDto,
       password: hashedPassword
     });
-
     const { password, ...payload } = user;
-
     return {
       access_token: this.jwtService.sign(payload)
     }
