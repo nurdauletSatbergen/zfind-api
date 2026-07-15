@@ -33,11 +33,16 @@ export class AuthService {
   async signUp(createUserDto: CreateUserDto) {
     const existingUser = await this.usersService.findOne({ email: createUserDto.email });
     if (existingUser) throw new ConflictException(`User with email ${createUserDto.email} already exists`);
+    const hashedPassword = await hash(createUserDto.password, 10);
+    const user = await this.usersService.create({
+      ...createUserDto,
+      password: hashedPassword
+    });
 
-    const user = await this.usersService.create(createUserDto);
+    const { password, ...payload } = user;
 
     return {
-
+      access_token: this.jwtService.sign(payload)
     }
   }
 
