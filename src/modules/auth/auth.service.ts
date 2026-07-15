@@ -2,15 +2,18 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { hash } from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import { User } from '../../generated/prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService
+    private usersService: UsersService,
+    private jwtService: JwtService
   ) {}
 
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string): Promise<Omit<User, "password"> | null> {
     const user = await this.usersService.findOne({ email });
     if (user && user.password == pass) {
       const { password, ...result } = user;
@@ -18,6 +21,12 @@ export class AuthService {
     }
 
     return null;
+  }
+
+  async signIn(payload: Omit<User, "password">) {
+    return {
+      access_token: this.jwtService.sign(payload)
+    }
   }
 
 
