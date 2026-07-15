@@ -16,7 +16,6 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('sign-in')
   signIn(@GetUser() user: Omit<User, "password">) {
-    console.log(user);
     return this.authService.signIn(user);
   }
 
@@ -25,6 +24,4 @@ export class AuthController {
   signUp(@Body() createUserDto: CreateUserDto) {
     return this.authService.signUp(createUserDto);
   }
-
-
 }
