@@ -12,7 +12,9 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 
+// @ts-ignore
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -42,5 +44,15 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove({ id });
+  }
+
+  @Patch(':id/setting')
+  updateUserSettings(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserSettingsDto: UpdateUserSettingsDto
+  ) {
+    console.log(updateUserSettingsDto)
+
+    return this.usersService.updateUserSettings(id, updateUserSettingsDto);
   }
 }

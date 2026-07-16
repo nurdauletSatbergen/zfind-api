@@ -1,6 +1,17 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { User, Prisma } from '../../generated/prisma/client';
+
+type UserWithSettings = Prisma.UserGetPayload<{
+  include: { userSetting: {
+      select: {
+        smsEnabled: true,
+        notificationsOn: true
+      }
+    }
+  }
+}>;
+
 
 @Injectable()
 export class UsersService {
@@ -40,7 +51,7 @@ export class UsersService {
     });
   }
 
-  async findOne(where: Prisma.UserWhereUniqueInput): Promise<User | null> {
+  async findOne(where: Prisma.UserWhereUniqueInput): Promise<UserWithSettings | null> {
     return this.prisma.user.findUnique({
       where,
       include: {
@@ -65,5 +76,18 @@ export class UsersService {
     const user = await this.findOne(where);
     if (!user) throw new NotFoundException(`User with ID ${ where.id } not found`);
     return this.prisma.user.delete({ where });
+  }
+
+  async updateUserSettings(userId: number, data: Prisma.UserSettingUpdateInput) {
+    const user = await this.findOne({ id: userId });
+    if (!user) throw new NotFoundException(`User with ID ${ userId} not found`);
+
+    console.log(user)
+    if (!user.userSetting) throw new BadRequestException('Bad request');
+
+    return this.prisma.userSetting.update({
+      where: { userId },
+      data
+    })
   }
 }
