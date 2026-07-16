@@ -21,7 +21,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userSetting UserSetting?
-  // roles Role[]
+  pets Pet[]
 
   @@map("users")
 }
@@ -58,4 +58,13 @@ model Post {
   description String
 
   @@map("posts")
+}
+
+model Pet {
+  id  Int @id @default(autoincrement())
+  name String
+  owner User @relation(fields: [ownerId], references: [id])
+  ownerId Int
+
+  @@map("pets")
 }

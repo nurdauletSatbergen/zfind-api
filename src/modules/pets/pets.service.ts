@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { PrismaService } from '../../libs/database/prisma.service';
 
 @Injectable()
 export class PetsService {
+  constructor(
+    private prisma: PrismaService
+  ) {}
+
   create(createPetDto: CreatePetDto) {
     return 'This action adds a new pet';
   }
