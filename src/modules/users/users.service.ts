@@ -13,7 +13,17 @@ export class UsersService {
     if (user) throw new ConflictException('User with this email already exists');
 
     try {
-      return await this.prisma.user.create({ data })
+      return await this.prisma.user.create({
+        data: {
+          ...data,
+          userSetting: {
+            create: {
+              smsEnabled: false,
+              notificationsOn: false
+            }
+          }
+        }
+      })
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('User with this email already exists');
@@ -23,11 +33,25 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      include: {
+        userSetting: true
+      }
+    });
   }
 
   async findOne(where: Prisma.UserWhereUniqueInput): Promise<User | null> {
-    return this.prisma.user.findUnique({ where });
+    return this.prisma.user.findUnique({
+      where,
+      include: {
+        userSetting: {
+          select: {
+            smsEnabled: true,
+            notificationsOn: true
+          }
+        }
+      }
+    });
   }
 
   async update(params: { where: Prisma.UserWhereUniqueInput; data: Prisma.UserUpdateInput }): Promise<User> {
