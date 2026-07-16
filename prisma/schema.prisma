@@ -22,18 +22,24 @@ model User {
   updatedAt DateTime @updatedAt
   userSetting UserSetting?
   // roles Role[]
+
+  @@map("users")
 }
 
 model Role {
   id Int @id @default(autoincrement())
   name String @unique
-  permissions Permissions[]
+  permissions Permissions[] @relation("role_permissions")
+
+  @@map("roles")
 }
 
 model Permissions {
   id Int @id @default(autoincrement())
   name String @unique
-  roles Role[]
+  roles Role[] @relation("role_permissions")
+
+  @@map("permissions")
 }
 
 model UserSetting {
@@ -42,10 +48,14 @@ model UserSetting {
   smsEnabled Boolean @default(false)
   user User @relation(fields: [userId], references: [id])
   userId Int @unique
+
+  @@map("user_settings")
 }
 
 model Post {
   id  Int @id @default(autoincrement())
   title String
   description String
+
+  @@map("posts")
 }
