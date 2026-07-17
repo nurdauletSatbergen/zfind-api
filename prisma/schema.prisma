@@ -22,6 +22,8 @@ model User {
   updatedAt DateTime @updatedAt
   userSetting UserSetting?
   pets Pet[]
+  role Role? @relation(fields: [roleId], references: [id])
+  roleId Int?
 
   @@map("users")
 }
@@ -29,12 +31,13 @@ model User {
 model Role {
   id Int @id @default(autoincrement())
   name String @unique
-  permissions Permissions[] @relation("role_permissions")
+  permissions Permission[] @relation("role_permissions")
+  users User[]
 
   @@map("roles")
 }
 
-model Permissions {
+model Permission {
   id Int @id @default(autoincrement())
   name String @unique
   roles Role[] @relation("role_permissions")
