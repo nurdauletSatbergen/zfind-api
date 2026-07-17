@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { User, Prisma } from '../../generated/prisma/client';
 
@@ -70,23 +70,31 @@ export class UsersService {
 
   async update(params: { where: Prisma.UserWhereUniqueInput; data: Prisma.UserUpdateInput }): Promise<User> {
     const { where, data } = params;
-    const user = await this.findOne(where);
-    if (!user) throw new NotFoundException(`User with ID ${ where.id } not found`);
-    return this.prisma.user.update({ data, where });
+    try {
+      return await this.prisma.user.update({ where, data });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('User not found');
+      }
+      throw e;
+    }
   }
 
   async remove(where: Prisma.UserWhereUniqueInput): Promise<User> {
-    const user = await this.findOne(where);
-    if (!user) throw new NotFoundException(`User with ID ${ where.id } not found`);
-    return this.prisma.user.delete({ where });
+    try {
+      return await this.prisma.user.delete({ where });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
+        throw new NotFoundException('User not found');
+      }
+      throw e;
+    }
   }
 
   async updateUserSettings(userId: number, data: Prisma.UserSettingUpdateInput) {
     const user = await this.findOne({ id: userId });
-    if (!user) throw new NotFoundException(`User with ID ${ userId} not found`);
-
-    console.log(user)
-    if (!user.userSetting) throw new BadRequestException('Bad request');
+    if (!user) throw new NotFoundException(`User not found`);
+    if (!user.userSetting) throw new NotFoundException('User settings not found');
 
     return this.prisma.userSetting.update({
       where: { userId },

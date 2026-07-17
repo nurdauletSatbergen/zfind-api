@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
@@ -18,17 +18,22 @@ export class PermissionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.permissionsService.findOne(+id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const permission = await this.permissionsService.findOne({ id });
+    if (!permission) throw new NotFoundException('Permission not found');
+    return permission;
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto) {
-    return this.permissionsService.update(+id, updatePermissionDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updatePermissionDto: UpdatePermissionDto) {
+    return this.permissionsService.update({
+      where: { id },
+      data: updatePermissionDto
+    });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.permissionsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.permissionsService.remove({ id });
   }
 }
