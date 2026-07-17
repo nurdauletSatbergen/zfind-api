@@ -2,16 +2,23 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../../generated/prisma/client';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('pets')
 export class PetsController {
   constructor(private readonly petsService: PetsService) {}
 
   @Post()
-  create(@Body() createPetDto: CreatePetDto) {
-    return this.petsService.create(createPetDto);
+  create(
+    @Body() createPetDto: CreatePetDto,
+    @GetUser() user: Omit<User, "password">
+  ) {
+    return this.petsService.create(user.id, createPetDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.petsService.findAll();

@@ -14,7 +14,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 
-// @ts-ignore
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

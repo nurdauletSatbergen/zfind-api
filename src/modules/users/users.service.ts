@@ -3,12 +3,14 @@ import { PrismaService } from '../../libs/database/prisma.service';
 import { User, Prisma } from '../../generated/prisma/client';
 
 type UserWithSettings = Prisma.UserGetPayload<{
-  include: { userSetting: {
+  include: {
+    userSetting: {
       select: {
         smsEnabled: true,
         notificationsOn: true
       }
-    }
+    },
+    pets: true
   }
 }>;
 
@@ -60,7 +62,8 @@ export class UsersService {
             smsEnabled: true,
             notificationsOn: true
           }
-        }
+        },
+        pets: true
       }
     });
   }

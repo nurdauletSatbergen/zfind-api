@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { PrismaService } from '../../libs/database/prisma.service';
+import { Prisma } from  '../../generated/prisma/client';
+
 
 @Injectable()
 export class PetsService {
@@ -9,12 +10,17 @@ export class PetsService {
     private prisma: PrismaService
   ) {}
 
-  create(createPetDto: CreatePetDto) {
-    return 'This action adds a new pet';
+  create(ownerId: number, createPetDto: Prisma.PetCreateWithoutOwnerInput) {
+    return this.prisma.pet.create({
+      data: {
+        ...createPetDto,
+        ownerId
+      }
+    })
   }
 
   findAll() {
-    return `This action returns all pets`;
+    return this.prisma.pet.findMany();
   }
 
   findOne(id: number) {
