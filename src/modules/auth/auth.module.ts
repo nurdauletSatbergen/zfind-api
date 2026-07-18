@@ -9,6 +9,7 @@ import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PrismaModule } from '../../libs/database/prisma.module';
 
 @Module({
   providers: [
@@ -29,7 +30,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       signOptions: {
         expiresIn: '1h'
       }
-    })
+    }),
+    PrismaModule
   ]
 })
 export class AuthModule {}

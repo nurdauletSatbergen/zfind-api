@@ -1,16 +1,18 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { hash, compare } from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '../../generated/prisma/client';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { PrismaService } from '../../libs/database/prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private prisma: PrismaService
   ) {}
 
 
@@ -52,6 +54,36 @@ export class AuthService {
       }
       throw e;
     }
+  }
+
+  async getProfile(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      omit: { password: true },
+      include: {
+        userSetting: {
+          select: {
+            smsEnabled: true,
+            notificationsOn: true
+          }
+        },
+        role: {
+          include: {
+            permissions: true
+          }
+        },
+      }
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const { role, ...profile } = user;
+
+    return {
+      ...profile,
+      role: role?.name ?? null,
+      permissions: role?.permissions.map((p) => p.name) ?? [],
+    };
   }
 
 }

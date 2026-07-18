@@ -63,7 +63,15 @@ export class UsersService {
             notificationsOn: true
           }
         },
-        pets: true
+        pets: true,
+        role: {
+          select: {
+            name: true,                                  // из роли — только имя
+            permissions: {
+              select: { name: true }                     // из прав — только имена
+            }
+          }
+        }
       }
     });
   }
