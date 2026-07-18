@@ -3,8 +3,8 @@ import { PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
-import { User } from '../../generated/prisma/client';
 import { Public } from '../auth/decorators/public.decorator';
+import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('pets')
 export class PetsController {
@@ -13,7 +13,7 @@ export class PetsController {
   @Post()
   create(
     @Body() createPetDto: CreatePetDto,
-    @GetUser() user: Omit<User, "password">
+    @GetUser() user: JwtPayload
   ) {
     return this.petsService.create(user.id, createPetDto);
   }
