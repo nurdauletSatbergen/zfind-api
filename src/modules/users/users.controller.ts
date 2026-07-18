@@ -50,8 +50,6 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserSettingsDto: UpdateUserSettingsDto
   ) {
-    console.log(updateUserSettingsDto)
-
     return this.usersService.updateUserSettings(id, updateUserSettingsDto);
   }
 }

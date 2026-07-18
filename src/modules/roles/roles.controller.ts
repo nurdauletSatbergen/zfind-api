@@ -5,7 +5,6 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { SetRolePermissionsDto } from './dto/set-role-permissions.dto';
 import { Public } from '../auth/decorators/public.decorator';
 
-@Public()
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
