@@ -67,8 +67,10 @@ model PetPhoto {
   id       Int  @id @default(autoincrement())
   pet      Pet  @relation(fields: [petId], references: [id], onDelete: Cascade)
   petId    Int                                   // без @unique → у питомца много фото
-  file     File @relation(fields: [fileId], references: [id])
-  fileId   Int  @unique                          // файл занят ровно одной связкой
+  file     File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId   Int  @unique                          // файл занят ровно одной связкой;
+                                                 // Cascade: удаление File удаляет связку
+                                                 // (default Restrict сломал бы file.delete)
   position Int  @default(0)                      // порядок в галерее; 0 = главное фото
 
   @@map("pet_photos")
@@ -101,6 +103,10 @@ src/modules/files/                 фича «файлы» — БЕЗ контр
                                    единственная точка записи в таблицу File
   entities/file.entity.ts
 
+src/shared/pipes/
+  image-file.pipe.ts               общий ParseFilePipe: mime по magic bytes,
+                                   ≤10 МБ — используют и pets, и users
+
 src/modules/pets/                  правки существующего модуля
   pets.controller.ts               + POST /:id/photos (FilesInterceptor, до 10),
                                    + DELETE /:id/photos/:photoId
@@ -125,12 +131,13 @@ docker-compose.yml                 minio + volume (dev)
 
 ```
 PUT    /users/me/avatar            multipart "file"        → { avatarUrl }
-POST   /pets/:id/photos            multipart "files" ×1–10 → PhotoResponseDto[]
-GET    /pets/:id                   → photos: [{ id, url, position }] по position
+POST   /pets/:id/photos            multipart "files" ×1–10 → { uploaded: [{id,url,position}], failed: [{filename}] }
+GET    /pets/:id                   → photos: [{ id, url, position }] по position (@Public)
 DELETE /pets/:id/photos/:photoId   → 204
 ```
 
-Все — под существующим JWT-guard. Валидация каждого файла:
+Все — под существующим JWT-guard, кроме `GET /pets/:id` (@Public —
+фото публичные, карточка видна без логина, как `GET /pets`). Валидация каждого файла:
 `ParseFilePipeBuilder` — mime `image/(jpeg|png|webp)` по magic bytes
 содержимого, размер ≤ 10 МБ. Лимит фото на питомца: 10
 (константа `MAX_PET_PHOTOS`).
@@ -179,7 +186,7 @@ API в раздаче не участвует. Приватные (будуще�
 | Питомец не найден | 404 (паттерн P2025) |
 | Питомец чужой | 403 ForbiddenException |
 | Превышен лимит 10 фото | 422 с сообщением |
-| MinIO недоступен | 503 ServiceUnavailableException (ловим в FilesService) |
+| MinIO недоступен | 503 ServiceUnavailableException (маппинг в MinioService — его получают все потребители) |
 | MinIO ok, БД упала | компенсация + проброс ошибки |
 
 ## Тестирование
