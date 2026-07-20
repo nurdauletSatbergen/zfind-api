@@ -14,63 +14,58 @@
 
 ---
 
-### Task 1: MinIO в docker-compose и переменные окружения
+### Task 1: Довести существующий compose и переменные окружения
+
+MinIO уже поднят в монорепо-compose `../docker/docker-compose.yml`
+(postgres + minio + api + web) — новый compose не создаём, только правим.
 
 **Files:**
-- Create: `docker-compose.yml`
-- Modify: `.env`
+- Modify: `../docker/docker-compose.yml`
+- Modify: `../docker/.env`
+- Modify: `.env` (zfind-api)
 
-- [ ] **Step 1: Создать `docker-compose.yml`**
+- [ ] **Step 1: Убрать сервис `minio-init` из `../docker/docker-compose.yml`**
+
+Принятое решение — бакеты и политику создаёт приложение (`ensureBucket`
+в Task 4); init-контейнер стал бы вторым источником истины (и сейчас он
+создаёт один бакет из `MINIO_BUCKET` без публичной policy). Удалить весь
+блок `minio-init:` и переменную `MINIO_BUCKET` из окружения сервиса `api`
+и из `../docker/.env`.
+
+- [ ] **Step 2: Дополнить окружение сервиса `api` в compose**
+
+В `environment` сервиса `api` добавить:
 
 ```yaml
-services:
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    volumes:
-      - minio-data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-volumes:
-  minio-data:
+      MINIO_USE_SSL: "false"
+      MINIO_PUBLIC_URL: http://localhost:9000
 ```
 
-`minioadmin/minioadmin` — только для локальной разработки; в проде ключи придут из секретов окружения.
+Ключевой момент: `MINIO_ENDPOINT: minio` — адрес *внутри* docker-сети
+(им пользуется сервер для загрузки), а `MINIO_PUBLIC_URL` — адрес,
+который увидит *браузер* пользователя, поэтому `localhost:9000`.
+Это две разные вещи, и путать их нельзя.
 
-- [ ] **Step 2: Добавить переменные в `.env`** (в конец файла)
+- [ ] **Step 3: Поправить `.env` в zfind-api** (для запуска `npm run start:dev` без docker)
+
+Сейчас в нём есть `MINIO_ENDPOINT/PORT/ACCESS_KEY/SECRET_KEY` и лишний
+`MINIO_BUCKET`. Удалить `MINIO_BUCKET`, добавить:
 
 ```env
-MINIO_ENDPOINT=localhost
-MINIO_PORT=9000
 MINIO_USE_SSL=false
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
 MINIO_PUBLIC_URL=http://localhost:9000
 ```
 
-- [ ] **Step 3: Запустить и проверить**
+При запуске на хосте `MINIO_ENDPOINT` должен быть `localhost`.
+`.env` не коммитим.
 
-Run: `docker compose up -d && curl -s http://localhost:9000/minio/health/live -o /dev/null -w "%{http_code}\n"`
-Expected: `200`. Консоль MinIO доступна на http://localhost:9001 (логин minioadmin).
+- [ ] **Step 4: Запустить и проверить**
 
-- [ ] **Step 4: Commit**
+Run: `docker compose -f ../docker/docker-compose.yml up -d minio && curl -s http://localhost:9000/minio/health/live -o /dev/null -w "%{http_code}\n"`
+Expected: `200`. Консоль MinIO — http://localhost:9001.
 
-```bash
-git add docker-compose.yml
-git commit -m "Added MinIO to docker-compose"
-```
-
-`.env` не коммитим (он в .gitignore; если нет — не добавлять в git).
+Папка `../docker` не под git — коммитить нечего (позже стоит завести
+для неё репозиторий, вне скоупа этого плана).
 
 ---
 
