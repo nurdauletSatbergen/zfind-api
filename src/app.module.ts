@@ -7,6 +7,7 @@ import { PetsModule } from './modules/pets/pets.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { StorageModule } from './libs/storage/storage.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { StorageModule } from './libs/storage/storage.module';
     PetsModule,
     RolesModule,
     PermissionsModule,
+    FilesModule,
   ]
 })
 export class AppModule {}
