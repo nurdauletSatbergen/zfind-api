@@ -6,11 +6,15 @@ import { AuthModule } from './modules/auth/auth.module';
 import { PetsModule } from './modules/pets/pets.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { StorageModule } from './libs/storage/storage.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
     PrismaModule,
+    StorageModule,
     UsersModule,
     AuthModule,
     PetsModule,

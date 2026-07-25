@@ -24,6 +24,10 @@ model User {
   pets Pet[]
   role Role? @relation(fields: [roleId], references: [id])
   roleId Int?
+  uploadedFiles File[] @relation("uploaded_files")
+
+  avatar File? @relation("user_avatar", fields: [avatarId], references: [id])
+  avatarId Int? @unique
 
   @@map("users")
 }
@@ -68,6 +72,39 @@ model Pet {
   name String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId Int
+  photos PetPhoto[]
 
   @@map("pets")
+}
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+model File {
+  id Int @id @default(autoincrement())
+  bucket String
+  key String @unique
+  mimeType String
+  size Int
+  visibility FileVisibility @default(PUBLIC)
+  uploadedBy User? @relation("uploaded_files", fields: [uploadedById], references: [id], onDelete: SetNull)
+  uploadedById Int?
+  createdAt DateTime @default(now())
+  petPhoto PetPhoto?
+  avatarOfUser User? @relation("user_avatar")
+
+  @@map("files")
+}
+
+model PetPhoto {
+  id Int @id @default(autoincrement())
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId Int
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId Int @unique
+  position Int @default(0)
+
+  @@map("pet_photos")
 }
