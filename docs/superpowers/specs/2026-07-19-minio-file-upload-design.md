@@ -90,7 +90,7 @@ model PetPhoto {
 ```
 src/libs/storage/                  инфраструктура (@Global, образец — PrismaModule)
   storage.module.ts
-  minio.service.ts                 обёртка над Minio.Client (пакет `minio`):
+  storage.service.ts                 обёртка над Minio.Client (пакет `minio`):
                                    upload / remove / publicUrl / presignedGetUrl;
                                    onModuleInit: bucketExists → makeBucket +
                                    anonymous read-only policy на zfind-public
@@ -186,12 +186,12 @@ API в раздаче не участвует. Приватные (будуще�
 | Питомец не найден | 404 (паттерн P2025) |
 | Питомец чужой | 403 ForbiddenException |
 | Превышен лимит 10 фото | 422 с сообщением |
-| MinIO недоступен | 503 ServiceUnavailableException (маппинг в MinioService — его получают все потребители) |
+| MinIO недоступен | 503 ServiceUnavailableException (маппинг в StorageService — его получают все потребители) |
 | MinIO ok, БД упала | компенсация + проброс ошибки |
 
 ## Тестирование
 
-- Юнит `FilesService` (моки MinioService/PrismaService): генерация
+- Юнит `FilesService` (моки StorageService/PrismaService): генерация
   ключа, компенсация при падении БД, выбор public/presigned URL.
 - Юнит `PetsService.addPhotos` / `UsersService.setAvatar`: 403 чужой
   питомец, лимит фото, порядок замены аватара.

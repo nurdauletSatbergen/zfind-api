@@ -170,7 +170,7 @@ git commit -m "Added File and PetPhoto models"
 
 **Files:**
 - Create: `src/libs/storage/storage.constants.ts`
-- Create: `src/libs/storage/minio.service.ts`
+- Create: `src/libs/storage/storage.service.ts`
 - Create: `src/libs/storage/storage.module.ts`
 - Modify: `src/app.module.ts`
 
@@ -196,7 +196,7 @@ export const publicReadPolicy = (bucket: string): string =>
 
 Это стандартная S3-policy «анонимное чтение любого объекта бакета» — благодаря ей браузер получает картинки напрямую с MinIO.
 
-- [ ] **Step 2: Сервис — `minio.service.ts`**
+- [ ] **Step 2: Сервис — `storage.service.ts`**
 
 ```typescript
 import {
@@ -213,7 +213,7 @@ import {
 } from './storage.constants';
 
 @Injectable()
-export class MinioService implements OnModuleInit {
+export class StorageService implements OnModuleInit {
   private readonly client: Minio.Client;
 
   constructor(private readonly config: ConfigService) {
@@ -276,12 +276,12 @@ export class MinioService implements OnModuleInit {
 
 ```typescript
 import { Global, Module } from '@nestjs/common';
-import { MinioService } from './minio.service';
+import { StorageService } from './storage.service';
 
 @Global()
 @Module({
-  providers: [MinioService],
-  exports: [MinioService],
+  providers: [StorageService],
+  exports: [StorageService],
 })
 export class StorageModule {}
 ```
@@ -337,7 +337,7 @@ git commit -m "Added StorageModule with MinIO client"
 ```typescript
 import { Test } from '@nestjs/testing';
 import { FilesService } from './files.service';
-import { MinioService } from '../../libs/storage/minio.service';
+import { StorageService } from '../../libs/storage/storage.service';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { PUBLIC_BUCKET } from '../../libs/storage/storage.constants';
 
@@ -370,7 +370,7 @@ describe('FilesService', () => {
     const module = await Test.createTestingModule({
       providers: [
         FilesService,
-        { provide: MinioService, useValue: minio },
+        { provide: StorageService, useValue: minio },
         { provide: PrismaService, useValue: prisma },
       ],
     }).compile();
@@ -463,7 +463,7 @@ Expected: FAIL — `Cannot find module './files.service'`.
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../../libs/database/prisma.service';
-import { MinioService } from '../../libs/storage/minio.service';
+import { StorageService } from '../../libs/storage/storage.service';
 import { PUBLIC_BUCKET } from '../../libs/storage/storage.constants';
 import { File } from '../../generated/prisma/client';
 
@@ -479,7 +479,7 @@ const MIME_EXTENSIONS: Record<string, string> = {
 export class FilesService {
   constructor(
     private prisma: PrismaService,
-    private minio: MinioService,
+    private minio: StorageService,
   ) {}
 
   async uploadPublic(
