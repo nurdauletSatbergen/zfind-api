@@ -30,11 +30,16 @@
 Изменения к `prisma/schema.prisma` (+ одна миграция):
 
 ```prisma
+enum NotificationType {
+  ANNOUNCEMENT
+  // будущие виды (например PET_RESPONSE) добавляются миграцией
+}
+
 model Notification {
-  id          Int        @id @default(autoincrement())
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          Int              @id @default(autoincrement())
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
-  type        String     // пока "ANNOUNCEMENT"; поле — задел под будущие виды
+  type        NotificationType @default(ANNOUNCEMENT)
   title       String
   body        String
   data        Json?      // произвольная нагрузка для фронта
