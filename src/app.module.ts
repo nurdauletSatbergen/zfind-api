@@ -14,7 +14,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     PrismaModule,
     StorageModule,
@@ -25,7 +25,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     PermissionsModule,
     FilesModule,
     NotificationsModule,
-    ScheduleModule.forRoot()
-  ]
+    ScheduleModule.forRoot(),
+  ],
 })
 export class AppModule {}

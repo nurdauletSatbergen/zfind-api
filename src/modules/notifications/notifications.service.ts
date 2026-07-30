@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { NotificationsGateway } from './notifications.gateway';
 import { Prisma } from '../../generated/prisma/client';
@@ -11,7 +15,7 @@ export const NOTIFICATION_RETENTION_DAYS = 90;
 export class NotificationsService {
   constructor(
     private prisma: PrismaService,
-    private gateway: NotificationsGateway
+    private gateway: NotificationsGateway,
   ) {}
 
   async findAllFor(userId: number, page: number, limit: number) {
@@ -135,7 +139,6 @@ export class NotificationsService {
     ]);
     return { removed: count };
   }
-
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async cleanupOld(): Promise<void> {

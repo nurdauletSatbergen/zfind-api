@@ -31,7 +31,7 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne({ id });
-    if (!user) throw new NotFoundException(`User with ID ${ id } not found`);
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return user;
   }
 
@@ -48,7 +48,7 @@ export class UsersController {
   @Patch(':id/setting')
   updateUserSettings(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserSettingsDto: UpdateUserSettingsDto
+    @Body() updateUserSettingsDto: UpdateUserSettingsDto,
   ) {
     return this.usersService.updateUserSettings(id, updateUserSettingsDto);
   }

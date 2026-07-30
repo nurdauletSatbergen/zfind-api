@@ -8,10 +8,7 @@ import { jwtConstants } from '../auth/constants';
 
 @Module({
   providers: [NotificationsGateway, NotificationsService],
-  imports: [
-    PrismaModule,
-    JwtModule.register({ secret: jwtConstants.secret })
-  ],
-  controllers: [NotificationsController]
+  imports: [PrismaModule, JwtModule.register({ secret: jwtConstants.secret })],
+  controllers: [NotificationsController],
 })
 export class NotificationsModule {}

@@ -1,4 +1,8 @@
-import { OnGatewayConnection, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import {
+  OnGatewayConnection,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
@@ -6,16 +10,14 @@ import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 @WebSocketGateway({
   namespace: '/notifications',
   cors: {
-    origin: '*'
-  }
+    origin: '*',
+  },
 })
 export class NotificationsGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(
-    private jwtService: JwtService
-  ) {}
+  constructor(private jwtService: JwtService) {}
 
   async handleConnection(client: Socket) {
     const token = client.handshake.auth?.token as string | undefined;

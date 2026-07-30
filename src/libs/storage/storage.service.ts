@@ -1,4 +1,8 @@
-import { Injectable, OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
 import {
@@ -11,9 +15,7 @@ import {
 export class StorageService implements OnModuleInit {
   private readonly client: Minio.Client;
 
-  constructor(
-    private readonly config: ConfigService
-  ) {
+  constructor(private readonly config: ConfigService) {
     this.client = new Minio.Client({
       endPoint: this.config.getOrThrow('MINIO_ENDPOINT'),
       port: Number(this.config.getOrThrow('MINIO_PORT')),
@@ -61,7 +63,11 @@ export class StorageService implements OnModuleInit {
     return `${this.config.getOrThrow('MINIO_PUBLIC_URL')}/${bucket}/${key}`;
   }
 
-  presignedGetUrl(bucket: string, key: string, expirySec = 3600): Promise<string> {
+  presignedGetUrl(
+    bucket: string,
+    key: string,
+    expirySec = 3600,
+  ): Promise<string> {
     return this.client.presignedGetObject(bucket, key, expirySec);
   }
 }

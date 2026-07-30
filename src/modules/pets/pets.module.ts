@@ -8,6 +8,6 @@ import { FilesModule } from '../files/files.module';
 @Module({
   controllers: [PetsController],
   providers: [PetsService],
-  imports: [PrismaModule, UsersModule, FilesModule]
+  imports: [PrismaModule, UsersModule, FilesModule],
 })
 export class PetsModule {}

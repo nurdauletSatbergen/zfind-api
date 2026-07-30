@@ -17,7 +17,7 @@ const MIME_EXTENSIONS: Record<string, string> = {
 export class FilesService {
   constructor(
     private prisma: PrismaService,
-    private storage: StorageService
+    private storage: StorageService,
   ) {}
 
   async uploadPublic(

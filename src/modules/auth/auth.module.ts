@@ -18,20 +18,20 @@ import { PrismaModule } from '../../libs/database/prisma.module';
     JwtStrategy,
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard
-    }
+      useClass: JwtAuthGuard,
+    },
   ],
   controllers: [AuthController],
-  imports:[
+  imports: [
     UsersModule,
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: {
-        expiresIn: '1h'
-      }
+        expiresIn: '1h',
+      },
     }),
-    PrismaModule
-  ]
+    PrismaModule,
+  ],
 })
 export class AuthModule {}

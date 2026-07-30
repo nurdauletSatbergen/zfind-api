@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+  NotFoundException,
+} from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -31,14 +41,20 @@ export class RolesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() setRolePermissionsDto: SetRolePermissionsDto,
   ) {
-    return this.rolesService.setPermissions(id, setRolePermissionsDto.permissionIds);
+    return this.rolesService.setPermissions(
+      id,
+      setRolePermissionsDto.permissionIds,
+    );
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateRoleDto: UpdateRoleDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
     return this.rolesService.update({
       where: { id },
-      data: updateRoleDto
+      data: updateRoleDto,
     });
   }
 

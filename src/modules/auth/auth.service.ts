@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { hash, compare } from 'bcrypt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -12,13 +16,15 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
   ) {}
 
-
-  async validateUser(email: string, pass: string): Promise<Omit<User, "password"> | null> {
+  async validateUser(
+    email: string,
+    pass: string,
+  ): Promise<Omit<User, 'password'> | null> {
     const user = await this.usersService.findOne({ email });
-    if (user && await compare(pass, user.password)) {
+    if (user && (await compare(pass, user.password))) {
       const { password, ...result } = user;
       return result;
     }
@@ -26,13 +32,12 @@ export class AuthService {
     return null;
   }
 
-  async signIn(user: Omit<User, "password">) {
+  async signIn(user: Omit<User, 'password'>) {
     const payload: JwtPayload = { id: user.id, email: user.email };
     return {
-      access_token: this.jwtService.sign(payload)
-    }
+      access_token: this.jwtService.sign(payload),
+    };
   }
-
 
   async signUp(createUserDto: CreateUserDto) {
     const hashedPassword = await hash(createUserDto.password, 10);
@@ -41,16 +46,21 @@ export class AuthService {
         ...createUserDto,
         password: hashedPassword,
         role: {
-          connect: { name: 'user' }
-        }
+          connect: { name: 'user' },
+        },
       });
       const payload: JwtPayload = { id: user.id, email: user.email };
       return {
-        access_token: this.jwtService.sign(payload)
-      }
+        access_token: this.jwtService.sign(payload),
+      };
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2025') {
-        throw new InternalServerErrorException('Default role "user" not found — run "npx prisma db seed"');
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new InternalServerErrorException(
+          'Default role "user" not found — run "npx prisma db seed"',
+        );
       }
       throw e;
     }
@@ -64,15 +74,15 @@ export class AuthService {
         userSetting: {
           select: {
             smsEnabled: true,
-            notificationsOn: true
-          }
+            notificationsOn: true,
+          },
         },
         role: {
           include: {
-            permissions: true
-          }
+            permissions: true,
+          },
         },
-      }
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -85,5 +95,4 @@ export class AuthService {
       permissions: role?.permissions.map((p) => p.name) ?? [],
     };
   }
-
 }

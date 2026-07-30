@@ -8,7 +8,8 @@ import {
   Delete,
   ParseIntPipe,
   HttpCode,
-  UseInterceptors, UploadedFiles,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { MAX_PET_PHOTOS, PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
@@ -24,10 +25,7 @@ export class PetsController {
   constructor(private readonly petsService: PetsService) {}
 
   @Post()
-  create(
-    @Body() createPetDto: CreatePetDto,
-    @GetUser() user: JwtPayload
-  ) {
+  create(@Body() createPetDto: CreatePetDto, @GetUser() user: JwtPayload) {
     return this.petsService.create(user.id, createPetDto);
   }
 
@@ -44,16 +42,16 @@ export class PetsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updatePetDto: UpdatePetDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePetDto: UpdatePetDto,
+  ) {
     return this.petsService.update(id, updatePetDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser() user: JwtPayload
-  ) {
+  remove(@Param('id', ParseIntPipe) id: number, @GetUser() user: JwtPayload) {
     return this.petsService.remove(id, user.id);
   }
 

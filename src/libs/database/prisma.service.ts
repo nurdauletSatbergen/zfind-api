@@ -6,7 +6,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
     const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL as string
+      connectionString: process.env.DATABASE_URL as string,
     });
     super({
       adapter,
@@ -16,6 +16,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   onModuleInit() {
     this.$connect()
       .then(() => console.log('DB connected'))
-      .catch(err => console.log('Error connecting DB'))
+      .catch((err) => console.log('Error connecting DB'));
   }
 }

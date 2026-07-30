@@ -5,6 +5,6 @@ import { PrismaModule } from '../../libs/database/prisma.module';
 @Module({
   providers: [FilesService],
   exports: [FilesService],
-  imports: [PrismaModule]
+  imports: [PrismaModule],
 })
 export class FilesModule {}
