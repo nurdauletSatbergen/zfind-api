@@ -9,6 +9,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
 import { StorageModule } from './libs/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     PermissionsModule,
     FilesModule,
     NotificationsModule,
+    ScheduleModule.forRoot()
   ]
 })
 export class AppModule {}

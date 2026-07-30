@@ -3,6 +3,9 @@ import { PrismaService } from '../../libs/database/prisma.service';
 import { NotificationsGateway } from './notifications.gateway';
 import { Prisma } from '../../generated/prisma/client';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
+
+export const NOTIFICATION_RETENTION_DAYS = 90;
 
 @Injectable()
 export class NotificationsService {
@@ -131,5 +134,16 @@ export class NotificationsService {
       }),
     ]);
     return { removed: count };
+  }
+
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupOld(): Promise<void> {
+    const cutoff = new Date(
+      Date.now() - NOTIFICATION_RETENTION_DAYS * 86_400_000,
+    );
+    await this.prisma.notification.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
   }
 }
