@@ -1,0 +1,36 @@
+enum NotificationType {
+  ANNOUNCEMENT
+}
+
+model Notification {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  type NotificationType @default(ANNOUNCEMENT)
+  title String
+  body String
+  data Json?
+  readAt DateTime?
+  createdAt DateTime @default(now())
+
+  broadcast Broadcast? @relation(fields: [broadcastId], references: [id], onDelete: SetNull)
+  broadcastId Int?
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model Broadcast {
+  id Int @id @default(autoincrement())
+  title String
+  body String
+  roleName String
+  recipients Int
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById Int?
+  recalledAt DateTime?
+  createdAt DateTime @default(now())
+  notifications Notification[]
+
+  @@map("broadcasts")
+}

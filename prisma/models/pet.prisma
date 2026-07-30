@@ -1,0 +1,20 @@
+model Pet {
+  id  Int @id @default(autoincrement())
+  name String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
+  photos PetPhoto[]
+
+  @@map("pets")
+}
+
+model PetPhoto {
+  id Int @id @default(autoincrement())
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId Int
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  fileId Int @unique
+  position Int @default(0)
+
+  @@map("pet_photos")
+}

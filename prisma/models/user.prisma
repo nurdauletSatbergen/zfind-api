@@ -1,0 +1,48 @@
+model User {
+  id  Int @id @default(autoincrement())
+  email String @unique
+  name  String? @default("")
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userSetting UserSetting?
+  pets Pet[]
+  role Role? @relation(fields: [roleId], references: [id])
+  roleId Int?
+  uploadedFiles File[] @relation("uploaded_files")
+
+  notifications Notification[]
+  broadcasts Broadcast[]
+
+  avatar File? @relation("user_avatar", fields: [avatarId], references: [id])
+  avatarId Int? @unique
+
+  @@map("users")
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  name String @unique
+  permissions Permission[] @relation("role_permissions")
+  users User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id Int @id @default(autoincrement())
+  name String @unique
+  roles Role[] @relation("role_permissions")
+
+  @@map("permissions")
+}
+
+model UserSetting {
+  id  Int @id @default(autoincrement())
+  notificationsOn Boolean @default(false)
+  smsEnabled Boolean @default(false)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @unique
+
+  @@map("user_settings")
+}

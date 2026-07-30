@@ -1,0 +1,20 @@
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+model File {
+  id Int @id @default(autoincrement())
+  bucket String
+  key String @unique
+  mimeType String
+  size Int
+  visibility FileVisibility @default(PUBLIC)
+  uploadedBy User? @relation("uploaded_files", fields: [uploadedById], references: [id], onDelete: SetNull)
+  uploadedById Int?
+  createdAt DateTime @default(now())
+  petPhoto PetPhoto?
+  avatarOfUser User? @relation("user_avatar")
+
+  @@map("files")
+}
