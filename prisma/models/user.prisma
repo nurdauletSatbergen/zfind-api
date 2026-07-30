@@ -3,6 +3,7 @@ model User {
   email String @unique
   name  String? @default("")
   password String
+  phone String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userSetting UserSetting?

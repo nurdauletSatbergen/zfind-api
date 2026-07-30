@@ -15,6 +15,7 @@ model File {
   createdAt DateTime @default(now())
   petPhoto PetPhoto?
   avatarOfUser User? @relation("user_avatar")
+  sighting Sighting?
 
   @@map("files")
 }

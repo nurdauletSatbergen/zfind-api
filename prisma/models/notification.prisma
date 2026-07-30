@@ -1,5 +1,6 @@
 enum NotificationType {
   ANNOUNCEMENT
+  SIGHTING
 }
 
 model Notification {

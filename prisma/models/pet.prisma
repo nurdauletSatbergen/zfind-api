@@ -1,10 +1,22 @@
+enum PetStatus {
+  HOME
+  LOST
+}
+
 model Pet {
   id  Int @id @default(autoincrement())
   name String
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId Int
   photos PetPhoto[]
+  status PetStatus @default(HOME)
+  publicCode String @unique
+  rewardAmount Decimal? @db.Decimal(10, 2)
 
+  lostEpisodes LostEpisode[]
+  sightings Sighting[]
+
+  @@index([status])
   @@map("pets")
 }
 
@@ -17,4 +29,32 @@ model PetPhoto {
   position Int @default(0)
 
   @@map("pet_photos")
+}
+
+model LostEpisode {
+  id Int @id @default(autoincrement())
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId Int
+  lostAt DateTime @default(now())
+  foundAt DateTime?
+
+  @@index([petId, lostAt])
+  @@map("lost_episodes")
+}
+
+model Sighting {
+  id Int @id @default(autoincrement())
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  petId Int
+  lat Float?
+  lng Float?
+  address String?
+  comment String?
+  reporterPhone String?
+  photo File? @relation(fields: [photoFileId], references: [id], onDelete: SetNull)
+  photoFileId Int? @unique
+  createdAt DateTime @default(now())
+
+  @@index([petId, createdAt])
+  @@map("sightings")
 }
