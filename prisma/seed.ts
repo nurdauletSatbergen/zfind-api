@@ -15,6 +15,7 @@ const ALL_PERMISSIONS = [
   'pets:manage-any',
   'users:read',
   'users:manage',
+  'notifications:broadcast',
 ];
 
 const USER_PERMISSIONS = ['pets:create', 'pets:read', 'pets:update', 'pets:delete'];
