@@ -8,6 +8,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { StorageModule } from './libs/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FilesModule } from './modules/files/files.module';
     RolesModule,
     PermissionsModule,
     FilesModule,
+    NotificationsModule,
   ]
 })
 export class AppModule {}
