@@ -13,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -46,6 +47,7 @@ export class UsersController {
   }
 
   @ApiOkResponse({ type: UserDetailDto })
+  @ApiNotFoundResponse()
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne({ id });
@@ -55,6 +57,7 @@ export class UsersController {
   }
 
   @ApiOkResponse({ type: UserDto })
+  @ApiNotFoundResponse()
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -68,6 +71,7 @@ export class UsersController {
   }
 
   @ApiOkResponse({ type: UserDto })
+  @ApiNotFoundResponse()
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number) {
     const { password, ...user } = await this.usersService.remove({ id });
@@ -75,6 +79,7 @@ export class UsersController {
   }
 
   @ApiOkResponse({ type: UserSettingDto })
+  @ApiNotFoundResponse()
   @Patch(':id/setting')
   updateUserSettings(
     @Param('id', ParseIntPipe) id: number,

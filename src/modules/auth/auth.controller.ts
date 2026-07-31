@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
@@ -33,6 +34,7 @@ export class AuthController {
 
   @Public()
   @ApiCreatedResponse({ type: AuthTokenDto })
+  @ApiConflictResponse({ description: 'Email already registered' })
   @Post('sign-up')
   signUp(@Body() createUserDto: CreateUserDto) {
     return this.authService.signUp(createUserDto);

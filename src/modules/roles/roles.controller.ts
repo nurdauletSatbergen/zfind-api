@@ -9,12 +9,18 @@ import {
   ParseIntPipe,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { SetRolePermissionsDto } from './dto/set-role-permissions.dto';
-import { Public } from '../auth/decorators/public.decorator';
+import { RoleDto } from './dto/role.dto';
 
 @ApiTags('roles')
 @ApiBearerAuth()
@@ -23,16 +29,20 @@ export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @ApiCreatedResponse({ type: RoleDto })
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
   }
 
   @Get()
+  @ApiOkResponse({ type: RoleDto, isArray: true })
   findAll() {
     return this.rolesService.findAll();
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: RoleDto })
+  @ApiNotFoundResponse()
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const role = await this.rolesService.findOne({ id });
     if (!role) throw new NotFoundException('Role not found');
@@ -40,6 +50,8 @@ export class RolesController {
   }
 
   @Patch(':id/permissions')
+  @ApiOkResponse({ type: RoleDto })
+  @ApiNotFoundResponse()
   setPermissions(
     @Param('id', ParseIntPipe) id: number,
     @Body() setRolePermissionsDto: SetRolePermissionsDto,
@@ -51,6 +63,8 @@ export class RolesController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: RoleDto })
+  @ApiNotFoundResponse()
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRoleDto: UpdateRoleDto,
@@ -62,6 +76,8 @@ export class RolesController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: RoleDto })
+  @ApiNotFoundResponse()
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.rolesService.remove({ id });
   }

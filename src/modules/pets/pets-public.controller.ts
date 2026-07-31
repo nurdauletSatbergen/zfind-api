@@ -10,7 +10,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ThrottlerGuard } from '@nestjs/throttler';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
@@ -37,6 +42,7 @@ export class PetsPublicController {
 
   @Public()
   @ApiOkResponse({ type: PublicPetDto })
+  @ApiNotFoundResponse({ description: 'Unknown public code' })
   @Get('pets/:code')
   publicCard(@Param('code') code: string) {
     return this.lostModeService.publicCard(code);
@@ -45,6 +51,7 @@ export class PetsPublicController {
   @Public()
   @UseGuards(ThrottlerGuard)
   @ApiCreatedResponse({ type: SightingCreatedDto })
+  @ApiNotFoundResponse({ description: 'Unknown public code' })
   @Post('pets/:code/sightings')
   @UseInterceptors(FileInterceptor('photo'))
   createSighting(

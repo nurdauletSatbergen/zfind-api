@@ -25,6 +25,7 @@ import { ChangeStatusDto } from './dto/change-status.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -60,12 +61,14 @@ export class PetsController {
 
   @Public()
   @ApiOkResponse({ type: PetWithPhotosDto })
+  @ApiNotFoundResponse()
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.petsService.findOne(+id);
   }
 
   @ApiBearerAuth()
+  @ApiNotFoundResponse()
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -76,6 +79,7 @@ export class PetsController {
 
   @ApiBearerAuth()
   @ApiOkResponse({ type: PetDto })
+  @ApiNotFoundResponse()
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -87,6 +91,7 @@ export class PetsController {
 
   @ApiBearerAuth()
   @ApiOkResponse({ type: SightingDto, isArray: true })
+  @ApiNotFoundResponse()
   @Get(':id/sightings')
   listSightings(
     @Param('id', ParseIntPipe) id: number,
@@ -97,6 +102,7 @@ export class PetsController {
 
   @ApiBearerAuth()
   @ApiOkResponse({ type: LostEpisodeDto, isArray: true })
+  @ApiNotFoundResponse()
   @Get(':id/lost-episodes')
   listLostEpisodes(
     @Param('id', ParseIntPipe) id: number,
@@ -106,6 +112,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiNotFoundResponse()
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', ParseIntPipe) id: number, @GetUser() user: JwtPayload) {
@@ -114,6 +121,7 @@ export class PetsController {
 
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UploadPhotosResultDto })
+  @ApiNotFoundResponse()
   @Post(':id/photos')
   @UseInterceptors(FilesInterceptor('files', MAX_PET_PHOTOS))
   addPhotos(
@@ -125,6 +133,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiNotFoundResponse()
   @Delete(':id/photos/:photoId')
   @HttpCode(204)
   removePhoto(
