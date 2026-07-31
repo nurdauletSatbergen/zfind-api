@@ -17,7 +17,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('zfind API')
-      .setVersion('0.0.1')
+      .setVersion(process.env.npm_package_version ?? '0.0.1')
       .addBearerAuth()
       .build();
     const documentFactory = () =>
