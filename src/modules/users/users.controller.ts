@@ -9,11 +9,18 @@ import {
   ParseIntPipe,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
+import { UserDto } from './dto/user.dto';
+import { UserSettingDto } from './dto/user-setting.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -21,16 +28,19 @@ import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiCreatedResponse({ type: UserDto })
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
+  @ApiOkResponse({ type: UserDto, isArray: true })
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
+  @ApiOkResponse({ type: UserDto })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne({ id });
@@ -38,16 +48,19 @@ export class UsersController {
     return user;
   }
 
+  @ApiOkResponse({ type: UserDto })
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
     return this.usersService.update({ where: { id }, data });
   }
 
+  @ApiOkResponse({ type: UserDto })
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove({ id });
   }
 
+  @ApiOkResponse({ type: UserSettingDto })
   @Patch(':id/setting')
   updateUserSettings(
     @Param('id', ParseIntPipe) id: number,
