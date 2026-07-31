@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PetPhotoDto } from './pet-photo.dto';
 
 export class PetDto {
   id: number;
@@ -14,4 +15,8 @@ export class PetDto {
 
   @ApiProperty({ nullable: true, type: String })
   rewardAmount: string | null;
+}
+
+export class PetWithPhotosDto extends PetDto {
+  photos: PetPhotoDto[];
 }

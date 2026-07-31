@@ -22,7 +22,16 @@ import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
 import { SightingsService } from './sightings.service';
 import { ChangeStatusDto } from './dto/change-status.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { PetDto, PetWithPhotosDto } from './dto/pet.dto';
+import { UploadPhotosResultDto } from './dto/pet-photo.dto';
+import { SightingDto } from './dto/sighting.dto';
+import { LostEpisodeDto } from './dto/lost-episode.dto';
 
 @ApiTags('pets')
 @Controller('pets')
@@ -34,6 +43,7 @@ export class PetsController {
   ) {}
 
   @ApiBearerAuth()
+  @ApiCreatedResponse({ type: PetDto })
   @Post()
   create(@Body() createPetDto: CreatePetDto, @GetUser() user: JwtPayload) {
     return this.petsService.create(user.id, createPetDto);
@@ -42,12 +52,14 @@ export class PetsController {
   // TODO: findAll/findOne публичные и отдают сущность целиком (publicCode, rewardAmount) —
   // сузить выдачу/закрыть авторизацией отдельной задачей
   @Public()
+  @ApiOkResponse({ type: PetDto, isArray: true })
   @Get()
   findAll() {
     return this.petsService.findAll();
   }
 
   @Public()
+  @ApiOkResponse({ type: PetWithPhotosDto })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.petsService.findOne(+id);
@@ -63,6 +75,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiOkResponse({ type: PetDto })
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -73,6 +86,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiOkResponse({ type: SightingDto, isArray: true })
   @Get(':id/sightings')
   listSightings(
     @Param('id', ParseIntPipe) id: number,
@@ -82,6 +96,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiOkResponse({ type: LostEpisodeDto, isArray: true })
   @Get(':id/lost-episodes')
   listLostEpisodes(
     @Param('id', ParseIntPipe) id: number,
@@ -98,6 +113,7 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
+  @ApiCreatedResponse({ type: UploadPhotosResultDto })
   @Post(':id/photos')
   @UseInterceptors(FilesInterceptor('files', MAX_PET_PHOTOS))
   addPhotos(
