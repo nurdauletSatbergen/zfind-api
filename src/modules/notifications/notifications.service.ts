@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { NotificationsGateway } from './notifications.gateway';
-import { Prisma } from '../../generated/prisma/client';
+import { Prisma, NotificationType } from '../../generated/prisma/client';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -148,5 +148,36 @@ export class NotificationsService {
     await this.prisma.notification.deleteMany({
       where: { createdAt: { lt: cutoff } },
     });
+  }
+
+  // Адресное уведомление одному пользователю. В отличие от broadcast,
+  // WS-эмит не гейтится notificationsOn — sighting критичен для владельца.
+  async notifyUser(
+    userId: number,
+    input: {
+      type: NotificationType;
+      title: string;
+      body: string;
+      data?: Prisma.InputJsonValue;
+    },
+  ) {
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        data: input.data,
+      },
+    });
+    this.gateway.sendToUser(userId, {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      body: notification.body,
+      data: input.data ?? null,
+      createdAt: notification.createdAt,
+    });
+    return notification;
   }
 }

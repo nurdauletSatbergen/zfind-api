@@ -5,7 +5,7 @@ import { StorageService } from '../../libs/storage/storage.service';
 import { PUBLIC_BUCKET } from '../../libs/storage/storage.constants';
 import { File } from '../../generated/prisma/client';
 
-export type FileScope = 'pets' | 'avatars';
+export type FileScope = 'pets' | 'avatars' | 'sightings';
 
 const MIME_EXTENSIONS: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -24,7 +24,7 @@ export class FilesService {
     scope: FileScope,
     entityId: number,
     file: Express.Multer.File,
-    uploadedById: number,
+    uploadedById: number | null,
   ): Promise<File> {
     const ext = MIME_EXTENSIONS[file.mimetype] ?? 'bin';
     const key = `${scope}/${entityId}/${randomUUID()}.${ext}`;
