@@ -34,8 +34,7 @@ export class UsersController {
   @ApiConflictResponse()
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const { password, ...user } =
-      await this.usersService.create(createUserDto);
+    const { password, ...user } = await this.usersService.create(createUserDto);
     return user;
   }
 
