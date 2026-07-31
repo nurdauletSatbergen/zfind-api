@@ -65,7 +65,11 @@ export class RolesService {
     data: Prisma.RoleUpdateInput;
   }) {
     try {
-      return await this.prisma.role.update({ where, data });
+      return await this.prisma.role.update({
+        where,
+        data,
+        include: { permissions: true },
+      });
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -105,7 +109,10 @@ export class RolesService {
 
   async remove(where: Prisma.RoleWhereUniqueInput) {
     try {
-      return await this.prisma.role.delete({ where });
+      return await this.prisma.role.delete({
+        where,
+        include: { permissions: true },
+      });
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&

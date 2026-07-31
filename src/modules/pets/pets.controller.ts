@@ -68,7 +68,6 @@ export class PetsController {
   }
 
   @ApiBearerAuth()
-  @ApiNotFoundResponse()
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
