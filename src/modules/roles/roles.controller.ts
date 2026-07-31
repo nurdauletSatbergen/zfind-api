@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -30,6 +31,8 @@ export class RolesController {
 
   @Post()
   @ApiCreatedResponse({ type: RoleDto })
+  @ApiConflictResponse({ description: 'Role name already exists' })
+  @ApiNotFoundResponse({ description: 'One of the permissions not found' })
   create(@Body() createRoleDto: CreateRoleDto) {
     return this.rolesService.create(createRoleDto);
   }
