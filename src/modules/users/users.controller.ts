@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
@@ -21,6 +22,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 import { UserDto } from './dto/user.dto';
 import { UserSettingDto } from './dto/user-setting.dto';
+import { UserDetailDto, UserWithSettingDto } from './dto/user-detail.dto';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -29,35 +31,48 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiCreatedResponse({ type: UserDto })
+  @ApiConflictResponse()
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const { password, ...user } =
+      await this.usersService.create(createUserDto);
+    return user;
   }
 
-  @ApiOkResponse({ type: UserDto, isArray: true })
+  @ApiOkResponse({ type: UserWithSettingDto, isArray: true })
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    const users = await this.usersService.findAll();
+    return users.map(({ password, ...user }) => user);
   }
 
-  @ApiOkResponse({ type: UserDto })
+  @ApiOkResponse({ type: UserDetailDto })
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne({ id });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return user;
+    const { password, ...result } = user;
+    return result;
   }
 
   @ApiOkResponse({ type: UserDto })
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateUserDto) {
-    return this.usersService.update({ where: { id }, data });
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateUserDto,
+  ) {
+    const { password, ...user } = await this.usersService.update({
+      where: { id },
+      data,
+    });
+    return user;
   }
 
   @ApiOkResponse({ type: UserDto })
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove({ id });
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const { password, ...user } = await this.usersService.remove({ id });
+    return user;
   }
 
   @ApiOkResponse({ type: UserSettingDto })
