@@ -33,6 +33,12 @@ export class PetsPublicController {
     private readonly sightingsService: SightingsService,
   ) {}
 
+  /**
+   * Публичная статистика сервиса
+   *
+   * @remarks Количество воссоединений и питомцев в поиске —
+   * для лендинга, без авторизации.
+   */
   @Public()
   @ApiOkResponse({ type: PublicStatsDto })
   @Get('stats')
@@ -40,6 +46,12 @@ export class PetsPublicController {
     return this.lostModeService.stats();
   }
 
+  /**
+   * Публичная карточка питомца по коду с QR-жетона
+   *
+   * @remarks Контакты владельца, вознаграждение и время пропажи
+   * присутствуют в ответе только когда питомец в статусе `LOST`.
+   */
   @Public()
   @ApiOkResponse({ type: PublicPetDto })
   @ApiNotFoundResponse({ description: 'Unknown public code' })
@@ -48,6 +60,13 @@ export class PetsPublicController {
     return this.lostModeService.publicCard(code);
   }
 
+  /**
+   * Сообщить, что питомца видели
+   *
+   * @remarks Для нашедшего, без авторизации; защищено rate-limit.
+   * Принимает координаты/адрес, комментарий, телефон и опциональное
+   * фото (multipart-поле `photo`). Владелец получает уведомление.
+   */
   @Public()
   @UseGuards(ThrottlerGuard)
   @ApiCreatedResponse({ type: SightingCreatedDto })

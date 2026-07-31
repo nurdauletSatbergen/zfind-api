@@ -26,7 +26,13 @@ import { RequirePermissions } from '../../shared/decorators/require-permissions.
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  // --- админские (permission notifications:broadcast) ---
+  /**
+   * Разослать объявление роли
+   *
+   * @remarks Требует право `notifications:broadcast`. Создаёт уведомление
+   * каждому пользователю указанной роли и шлёт его в realtime через
+   * WebSocket.
+   */
   @Post('broadcasts')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -37,6 +43,11 @@ export class NotificationsController {
     return this.notificationsService.broadcast(user.id, dto);
   }
 
+  /**
+   * История рассылок
+   *
+   * @remarks Требует право `notifications:broadcast`.
+   */
   @Get('broadcasts')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -44,6 +55,12 @@ export class NotificationsController {
     return this.notificationsService.listBroadcasts();
   }
 
+  /**
+   * Отозвать рассылку
+   *
+   * @remarks Требует право `notifications:broadcast`. Удаляет уведомления
+   * этой рассылки у получателей.
+   */
   @Delete('broadcasts/:id')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -51,18 +68,28 @@ export class NotificationsController {
     return this.notificationsService.recallBroadcast(id);
   }
 
-  // --- пользовательские ---
-
+  /**
+   * Количество непрочитанных уведомлений
+   */
   @Get('unread-count')
   unreadCount(@GetUser() user: JwtPayload) {
     return this.notificationsService.unreadCount(user.id);
   }
 
+  /**
+   * Отметить все уведомления прочитанными
+   */
   @Patch('read-all')
   markAllRead(@GetUser() user: JwtPayload) {
     return this.notificationsService.markAllRead(user.id);
   }
 
+  /**
+   * Уведомления текущего пользователя
+   *
+   * @remarks Постранично, от новых к старым: `page` (с 1) и
+   * `limit` (по умолчанию 20).
+   */
   @Get()
   findAll(
     @GetUser() user: JwtPayload,
@@ -72,6 +99,9 @@ export class NotificationsController {
     return this.notificationsService.findAllFor(user.id, page, limit);
   }
 
+  /**
+   * Отметить уведомление прочитанным
+   */
   @Patch(':id/read')
   @HttpCode(204)
   async markRead(
@@ -81,6 +111,9 @@ export class NotificationsController {
     await this.notificationsService.markRead(user.id, id);
   }
 
+  /**
+   * Удалить уведомление
+   */
   @Delete(':id')
   @HttpCode(204)
   async removeOne(
@@ -90,6 +123,12 @@ export class NotificationsController {
     await this.notificationsService.removeOne(user.id, id);
   }
 
+  /**
+   * Удалить уведомления пользователя
+   *
+   * @remarks Без параметров удаляет все; с `?read=true` — только
+   * прочитанные.
+   */
   @Delete()
   removeAll(@GetUser() user: JwtPayload, @Query('read') read?: string) {
     return this.notificationsService.removeAll(user.id, read === 'true');

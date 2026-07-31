@@ -23,6 +23,11 @@ import { ProfileDto } from './dto/profile.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  /**
+   * Вход по email и паролю
+   *
+   * @remarks Возвращает JWT для заголовка `Authorization: Bearer <token>`.
+   */
   @Public()
   @UseGuards(LocalAuthGuard)
   @ApiBody({ type: SignInDto })
@@ -32,6 +37,12 @@ export class AuthController {
     return this.authService.signIn(user);
   }
 
+  /**
+   * Регистрация нового пользователя
+   *
+   * @remarks Создаёт пользователя с ролью `user` и сразу возвращает JWT —
+   * отдельный вход после регистрации не нужен.
+   */
   @Public()
   @ApiCreatedResponse({ type: AuthTokenDto })
   @ApiConflictResponse({ description: 'Email already registered' })
@@ -40,6 +51,12 @@ export class AuthController {
     return this.authService.signUp(createUserDto);
   }
 
+  /**
+   * Профиль текущего пользователя
+   *
+   * @remarks Пользователь определяется по JWT. В ответе — настройки,
+   * имя роли и плоский список прав.
+   */
   @ApiBearerAuth()
   @ApiOkResponse({ type: ProfileDto })
   @Get('profile')

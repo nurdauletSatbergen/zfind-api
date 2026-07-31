@@ -43,6 +43,12 @@ export class PetsController {
     private readonly sightingsService: SightingsService,
   ) {}
 
+  /**
+   * Создать питомца
+   *
+   * @remarks Питомец привязывается к текущему пользователю. Уникальный
+   * `publicCode` для публичной карточки генерируется автоматически.
+   */
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: PetDto })
   @Post()
@@ -50,15 +56,23 @@ export class PetsController {
     return this.petsService.create(user.id, createPetDto);
   }
 
-  // TODO: findAll/findOne публичные и отдают сущность целиком (publicCode, rewardAmount) —
-  // сузить выдачу/закрыть авторизацией отдельной задачей
+  /**
+   * Список всех питомцев
+   */
   @Public()
   @ApiOkResponse({ type: PetDto, isArray: true })
   @Get()
   findAll() {
+    // TODO: findAll/findOne публичные и отдают сущность целиком (publicCode,
+    // rewardAmount) — сузить выдачу/закрыть авторизацией отдельной задачей
     return this.petsService.findAll();
   }
 
+  /**
+   * Питомец по id с фотографиями
+   *
+   * @remarks Фото отсортированы по позиции, для каждого — готовый URL.
+   */
   @Public()
   @ApiOkResponse({ type: PetWithPhotosDto })
   @ApiNotFoundResponse()
@@ -67,6 +81,11 @@ export class PetsController {
     return this.petsService.findOne(+id);
   }
 
+  /**
+   * Обновить питомца
+   *
+   * @remarks Пока не реализовано — метод-заглушка.
+   */
   @ApiBearerAuth()
   @Patch(':id')
   update(
@@ -76,6 +95,13 @@ export class PetsController {
     return this.petsService.update(id, updatePetDto);
   }
 
+  /**
+   * Сменить статус питомца (HOME/LOST)
+   *
+   * @remarks Только владелец. Переход в `LOST` открывает эпизод пропажи и
+   * принимает опциональный `rewardAmount`; возврат в `HOME` закрывает
+   * открытые эпизоды и сбрасывает вознаграждение.
+   */
   @ApiBearerAuth()
   @ApiOkResponse({ type: PetDto })
   @ApiNotFoundResponse()
@@ -88,6 +114,12 @@ export class PetsController {
     return this.lostModeService.changeStatus(id, user.id, dto);
   }
 
+  /**
+   * Сообщения «видели питомца» (для владельца)
+   *
+   * @remarks Только владелец. Отсортированы от новых к старым,
+   * с URL фото очевидца, если оно было приложено.
+   */
   @ApiBearerAuth()
   @ApiOkResponse({ type: SightingDto, isArray: true })
   @ApiNotFoundResponse()
@@ -99,6 +131,11 @@ export class PetsController {
     return this.sightingsService.listForOwner(id, user.id);
   }
 
+  /**
+   * История эпизодов пропажи питомца
+   *
+   * @remarks Только владелец. Открытый эпизод имеет `foundAt: null`.
+   */
   @ApiBearerAuth()
   @ApiOkResponse({ type: LostEpisodeDto, isArray: true })
   @ApiNotFoundResponse()
@@ -110,6 +147,11 @@ export class PetsController {
     return this.lostModeService.listEpisodes(id, user.id);
   }
 
+  /**
+   * Удалить питомца
+   *
+   * @remarks Только владелец. Каскадно удаляет фотографии из хранилища.
+   */
   @ApiBearerAuth()
   @ApiNotFoundResponse()
   @Delete(':id')
@@ -118,6 +160,12 @@ export class PetsController {
     return this.petsService.remove(id, user.id);
   }
 
+  /**
+   * Загрузить фотографии питомца
+   *
+   * @remarks Только владелец. Multipart-поле `files`, до 5 фото на питомца
+   * суммарно. Ответ разделяет успешно загруженные и отклонённые файлы.
+   */
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UploadPhotosResultDto })
   @ApiNotFoundResponse()
@@ -131,6 +179,11 @@ export class PetsController {
     return this.petsService.addPhotos(id, user.id, files);
   }
 
+  /**
+   * Удалить фотографию питомца
+   *
+   * @remarks Только владелец. Файл удаляется и из хранилища.
+   */
   @ApiBearerAuth()
   @ApiNotFoundResponse()
   @Delete(':id/photos/:photoId')

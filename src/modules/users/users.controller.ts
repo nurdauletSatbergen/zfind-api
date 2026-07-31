@@ -31,6 +31,12 @@ import { UserDetailDto, UserWithSettingDto } from './dto/user-detail.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * Создать пользователя
+   *
+   * @remarks Email должен быть уникален, иначе 409. Настройки
+   * пользователя создаются автоматически с выключенными уведомлениями.
+   */
   @ApiCreatedResponse({ type: UserDto })
   @ApiConflictResponse()
   @Post()
@@ -39,6 +45,11 @@ export class UsersController {
     return user;
   }
 
+  /**
+   * Список всех пользователей
+   *
+   * @remarks Каждый элемент включает настройки пользователя.
+   */
   @ApiOkResponse({ type: UserWithSettingDto, isArray: true })
   @Get()
   async findAll() {
@@ -46,6 +57,12 @@ export class UsersController {
     return users.map(({ password, ...user }) => user);
   }
 
+  /**
+   * Пользователь по id
+   *
+   * @remarks Детальная карточка: настройки, питомцы и роль
+   * со списком прав.
+   */
   @ApiOkResponse({ type: UserDetailDto })
   @ApiNotFoundResponse()
   @Get(':id')
@@ -56,6 +73,9 @@ export class UsersController {
     return result;
   }
 
+  /**
+   * Обновить пользователя
+   */
   @ApiOkResponse({ type: UserDto })
   @ApiNotFoundResponse()
   @Patch(':id')
@@ -70,6 +90,11 @@ export class UsersController {
     return user;
   }
 
+  /**
+   * Удалить пользователя
+   *
+   * @remarks Возвращает удалённую запись.
+   */
   @ApiOkResponse({ type: UserDto })
   @ApiNotFoundResponse()
   @Delete(':id')
@@ -78,6 +103,9 @@ export class UsersController {
     return user;
   }
 
+  /**
+   * Обновить настройки уведомлений пользователя
+   */
   @ApiOkResponse({ type: UserSettingDto })
   @ApiNotFoundResponse()
   @Patch(':id/setting')

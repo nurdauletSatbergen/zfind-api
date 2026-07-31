@@ -28,6 +28,12 @@ import { PermissionDto } from './dto/permission.dto';
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
+  /**
+   * Создать право
+   *
+   * @remarks Имя уникально; конвенция — `ресурс:действие`,
+   * например `pets:create`.
+   */
   @Post()
   @ApiCreatedResponse({ type: PermissionDto })
   @ApiConflictResponse({ description: 'Permission name already exists' })
@@ -35,12 +41,18 @@ export class PermissionsController {
     return this.permissionsService.create(createPermissionDto);
   }
 
+  /**
+   * Список всех прав
+   */
   @Get()
   @ApiOkResponse({ type: PermissionDto, isArray: true })
   findAll() {
     return this.permissionsService.findAll();
   }
 
+  /**
+   * Право по id
+   */
   @Get(':id')
   @ApiOkResponse({ type: PermissionDto })
   @ApiNotFoundResponse()
@@ -50,6 +62,9 @@ export class PermissionsController {
     return permission;
   }
 
+  /**
+   * Переименовать право
+   */
   @Patch(':id')
   @ApiOkResponse({ type: PermissionDto })
   @ApiNotFoundResponse()
@@ -63,6 +78,11 @@ export class PermissionsController {
     });
   }
 
+  /**
+   * Удалить право
+   *
+   * @remarks Возвращает удалённую запись; у ролей это право снимается.
+   */
   @Delete(':id')
   @ApiOkResponse({ type: PermissionDto })
   @ApiNotFoundResponse()

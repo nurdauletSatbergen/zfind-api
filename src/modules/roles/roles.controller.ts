@@ -29,6 +29,11 @@ import { RoleDto } from './dto/role.dto';
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
+  /**
+   * Создать роль
+   *
+   * @remarks Имя роли уникально. Можно сразу передать список id прав.
+   */
   @Post()
   @ApiCreatedResponse({ type: RoleDto })
   @ApiConflictResponse({ description: 'Role name already exists' })
@@ -37,12 +42,18 @@ export class RolesController {
     return this.rolesService.create(createRoleDto);
   }
 
+  /**
+   * Список ролей с их правами
+   */
   @Get()
   @ApiOkResponse({ type: RoleDto, isArray: true })
   findAll() {
     return this.rolesService.findAll();
   }
 
+  /**
+   * Роль по id с её правами
+   */
   @Get(':id')
   @ApiOkResponse({ type: RoleDto })
   @ApiNotFoundResponse()
@@ -52,6 +63,12 @@ export class RolesController {
     return role;
   }
 
+  /**
+   * Заменить набор прав роли
+   *
+   * @remarks Полная замена: роль получит ровно переданный список
+   * `permissionIds`, прежние связи снимаются.
+   */
   @Patch(':id/permissions')
   @ApiOkResponse({ type: RoleDto })
   @ApiNotFoundResponse()
@@ -65,6 +82,9 @@ export class RolesController {
     );
   }
 
+  /**
+   * Переименовать роль
+   */
   @Patch(':id')
   @ApiOkResponse({ type: RoleDto })
   @ApiNotFoundResponse()
@@ -78,6 +98,12 @@ export class RolesController {
     });
   }
 
+  /**
+   * Удалить роль
+   *
+   * @remarks Возвращает удалённую запись. Пользователи с этой ролью
+   * остаются без роли (`roleId: null`).
+   */
   @Delete(':id')
   @ApiOkResponse({ type: RoleDto })
   @ApiNotFoundResponse()
