@@ -12,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -19,6 +20,8 @@ import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RequirePermissions } from '../../shared/decorators/require-permissions.decorator';
 
+@ApiTags('notifications')
+@ApiBearerAuth()
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}

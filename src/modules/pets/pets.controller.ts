@@ -22,7 +22,9 @@ import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
 import { SightingsService } from './sightings.service';
 import { ChangeStatusDto } from './dto/change-status.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('pets')
 @Controller('pets')
 export class PetsController {
   constructor(
@@ -31,6 +33,7 @@ export class PetsController {
     private readonly sightingsService: SightingsService,
   ) {}
 
+  @ApiBearerAuth()
   @Post()
   create(@Body() createPetDto: CreatePetDto, @GetUser() user: JwtPayload) {
     return this.petsService.create(user.id, createPetDto);
@@ -50,6 +53,7 @@ export class PetsController {
     return this.petsService.findOne(+id);
   }
 
+  @ApiBearerAuth()
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -58,6 +62,7 @@ export class PetsController {
     return this.petsService.update(id, updatePetDto);
   }
 
+  @ApiBearerAuth()
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -67,6 +72,7 @@ export class PetsController {
     return this.lostModeService.changeStatus(id, user.id, dto);
   }
 
+  @ApiBearerAuth()
   @Get(':id/sightings')
   listSightings(
     @Param('id', ParseIntPipe) id: number,
@@ -75,6 +81,7 @@ export class PetsController {
     return this.sightingsService.listForOwner(id, user.id);
   }
 
+  @ApiBearerAuth()
   @Get(':id/lost-episodes')
   listLostEpisodes(
     @Param('id', ParseIntPipe) id: number,
@@ -83,12 +90,14 @@ export class PetsController {
     return this.lostModeService.listEpisodes(id, user.id);
   }
 
+  @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', ParseIntPipe) id: number, @GetUser() user: JwtPayload) {
     return this.petsService.remove(id, user.id);
   }
 
+  @ApiBearerAuth()
   @Post(':id/photos')
   @UseInterceptors(FilesInterceptor('files', MAX_PET_PHOTOS))
   addPhotos(
@@ -99,6 +108,7 @@ export class PetsController {
     return this.petsService.addPhotos(id, user.id, files);
   }
 
+  @ApiBearerAuth()
   @Delete(':id/photos/:photoId')
   @HttpCode(204)
   removePhoto(

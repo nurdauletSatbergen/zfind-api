@@ -10,12 +10,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
 import { SightingsService } from './sightings.service';
 import { CreateSightingDto } from './dto/create-sighting.dto';
 
+@ApiTags('public')
 @Controller('public')
 export class PetsPublicController {
   constructor(
