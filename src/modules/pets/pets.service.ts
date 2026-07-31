@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { PrismaService } from '../../libs/database/prisma.service';
-import { Prisma, NotificationType } from '../../generated/prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { FilesService } from '../files/files.service';
 import { randomInt } from 'node:crypto';
 import { CreatePetDto } from './dto/create-pet.dto';

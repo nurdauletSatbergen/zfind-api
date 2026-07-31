@@ -10,6 +10,7 @@ import { StorageModule } from './libs/storage/storage.module';
 import { FilesModule } from './modules/files/files.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { minutes, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     FilesModule,
     NotificationsModule,
     ScheduleModule.forRoot(),
+    ThrottlerModule.forRoot([{ ttl: minutes(10), limit: 5 }]),
   ],
 })
 export class AppModule {}
