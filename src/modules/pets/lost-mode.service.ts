@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { FilesService } from '../files/files.service';
-import { PetsService } from './pets.service';
+import { calculateAge, PetsService } from './pets.service';
 import { ChangeStatusDto } from './dto/change-status.dto';
 import { PublicPetDto } from './dto/public-pet.dto';
 
@@ -85,6 +85,10 @@ export class LostModeService {
         pet.photos.map((photo) => this.filesService.url(photo.file)),
       ),
       recentlyFound: await this.hasRecentReunion(pet.id),
+      species: pet.species,
+      color: pet.color,
+      sex: pet.sex,
+      age: calculateAge(pet.birthDate),
     };
 
     if (pet.status === 'LOST') {

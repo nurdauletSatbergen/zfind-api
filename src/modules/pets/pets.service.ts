@@ -24,6 +24,19 @@ export function generatePublicCode(): string {
   return `${code.slice(0, 3)}-${code.slice(3)}`;
 }
 
+// Возраст не хранится в БД — вычисляется из birthDate, чтобы не протухал
+export function calculateAge(birthDate: Date | null): number | null {
+  if (!birthDate) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birthDate.getFullYear();
+  const beforeBirthday =
+    now.getMonth() < birthDate.getMonth() ||
+    (now.getMonth() === birthDate.getMonth() &&
+      now.getDate() < birthDate.getDate());
+  if (beforeBirthday) age--;
+  return age;
+}
+
 @Injectable()
 export class PetsService {
   constructor(
@@ -34,13 +47,14 @@ export class PetsService {
   async create(ownerId: number, createPetDto: CreatePetDto) {
     for (let attempt = 0; attempt < CODE_GENERATION_ATTEMPTS; attempt++) {
       try {
-        return await this.prisma.pet.create({
+        const pet = await this.prisma.pet.create({
           data: {
             ...createPetDto,
             ownerId,
             publicCode: generatePublicCode(),
           },
         });
+        return { ...pet, age: calculateAge(pet.birthDate) };
       } catch (e) {
         if (
           e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -55,8 +69,35 @@ export class PetsService {
     );
   }
 
-  findAll() {
-    return this.prisma.pet.findMany();
+  async findAllForOwner(ownerId: number, page: number, limit: number) {
+    const [pets, total] = await this.prisma.$transaction([
+      this.prisma.pet.findMany({
+        where: { ownerId },
+        orderBy: { id: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          // обложка карточки — первое фото; полный набор отдаёт findOne
+          photos: {
+            include: { file: true },
+            orderBy: { position: 'asc' },
+            take: 1,
+          },
+        },
+      }),
+      this.prisma.pet.count({ where: { ownerId } }),
+    ]);
+
+    const items = await Promise.all(
+      pets.map(async ({ photos, ...pet }) => ({
+        ...pet,
+        age: calculateAge(pet.birthDate),
+        coverUrl: photos[0]
+          ? await this.filesService.url(photos[0].file)
+          : null,
+      })),
+    );
+    return { items, total, page, limit };
   }
 
   async findOne(id: number) {
@@ -76,6 +117,7 @@ export class PetsService {
 
     return {
       ...rest,
+      age: calculateAge(rest.birthDate),
       photos: await Promise.all(
         photos.map(async (photo) => ({
           id: photo.id,
@@ -86,8 +128,13 @@ export class PetsService {
     };
   }
 
-  update(id: number, updatePetDto: UpdatePetDto) {
-    return `This action updates a #${id} pet`;
+  async update(id: number, userId: number, updatePetDto: UpdatePetDto) {
+    await this.findOwnedPet(id, userId);
+    const pet = await this.prisma.pet.update({
+      where: { id },
+      data: updatePetDto,
+    });
+    return { ...pet, age: calculateAge(pet.birthDate) };
   }
 
   async remove(id: number, userId: number) {

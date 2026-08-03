@@ -3,6 +3,18 @@ enum PetStatus {
   LOST
 }
 
+enum PetSex {
+  MALE
+  FEMALE
+}
+
+enum PetSpecies {
+  DOG
+  CAT
+  BIRD
+  OTHER
+}
+
 model Pet {
   id  Int @id @default(autoincrement())
   name String
@@ -12,6 +24,10 @@ model Pet {
   status PetStatus @default(HOME)
   publicCode String @unique
   rewardAmount Decimal? @db.Decimal(10, 2)
+  species PetSpecies?
+  color String?
+  sex PetSex?
+  birthDate DateTime?
 
   lostEpisodes LostEpisode[]
   sightings Sighting[]

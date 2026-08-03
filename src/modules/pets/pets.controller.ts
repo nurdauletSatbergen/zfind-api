@@ -10,6 +10,8 @@ import {
   HttpCode,
   UseInterceptors,
   UploadedFiles,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { MAX_PET_PHOTOS, PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
@@ -29,7 +31,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { PetDto, PetWithPhotosDto } from './dto/pet.dto';
+import { PaginatedPetsDto, PetDto, PetWithPhotosDto } from './dto/pet.dto';
 import { UploadPhotosResultDto } from './dto/pet-photo.dto';
 import { SightingDto } from './dto/sighting.dto';
 import { LostEpisodeDto } from './dto/lost-episode.dto';
@@ -57,15 +59,20 @@ export class PetsController {
   }
 
   /**
-   * Список всех питомцев
+   * Мои питомцы
+   *
+   * @remarks Только питомцы текущего пользователя, постранично,
+   * от новых к старым: `page` (с 1) и `limit` (по умолчанию 20).
    */
-  @Public()
-  @ApiOkResponse({ type: PetDto, isArray: true })
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PaginatedPetsDto })
   @Get()
-  findAll() {
-    // TODO: findAll/findOne публичные и отдают сущность целиком (publicCode,
-    // rewardAmount) — сузить выдачу/закрыть авторизацией отдельной задачей
-    return this.petsService.findAll();
+  findAll(
+    @GetUser() user: JwtPayload,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.petsService.findAllForOwner(user.id, page, limit);
   }
 
   /**
@@ -78,21 +85,27 @@ export class PetsController {
   @ApiNotFoundResponse()
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
+    // TODO: findOne публичный и отдаёт сущность целиком (publicCode,
+    // rewardAmount) — сузить выдачу/закрыть авторизацией отдельной задачей
     return this.petsService.findOne(+id);
   }
 
   /**
    * Обновить питомца
    *
-   * @remarks Пока не реализовано — метод-заглушка.
+   * @remarks Только владелец. Кличка, окрас, пол, дата рождения.
+   * Статус меняется отдельной командой `PATCH /pets/:id/status`.
    */
   @ApiBearerAuth()
+  @ApiOkResponse({ type: PetDto })
+  @ApiNotFoundResponse()
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: JwtPayload,
     @Body() updatePetDto: UpdatePetDto,
   ) {
-    return this.petsService.update(id, updatePetDto);
+    return this.petsService.update(id, user.id, updatePetDto);
   }
 
   /**
