@@ -29,6 +29,14 @@ export class PetDto {
   @ApiProperty({ nullable: true, type: Date })
   birthDate: Date | null;
 
+  /** Особые приметы в свободной форме */
+  @ApiProperty({ nullable: true, type: String })
+  traits: string | null;
+
+  /** Вес в килограммах */
+  @ApiProperty({ nullable: true, type: Number })
+  weightKg: number | null;
+
   /** Полных лет, вычисляется из birthDate; null, если дата не указана */
   @ApiProperty({ nullable: true, type: Number })
   age: number | null;

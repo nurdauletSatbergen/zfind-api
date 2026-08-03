@@ -26,6 +26,14 @@ export class PublicPetDto {
   @ApiProperty({ nullable: true, type: Number })
   age: number | null;
 
+  /** Особые приметы — ключевая информация для опознания */
+  @ApiProperty({ nullable: true, type: String })
+  traits: string | null;
+
+  /** Вес в килограммах — помогает оценить размер животного */
+  @ApiProperty({ nullable: true, type: Number })
+  weightKg: number | null;
+
   /** только при status === 'LOST' */
   rewardAmount?: string | null;
 

@@ -89,6 +89,8 @@ export class LostModeService {
       color: pet.color,
       sex: pet.sex,
       age: calculateAge(pet.birthDate),
+      traits: pet.traits,
+      weightKg: pet.weightKg,
     };
 
     if (pet.status === 'LOST') {

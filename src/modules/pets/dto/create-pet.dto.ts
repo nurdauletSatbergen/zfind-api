@@ -3,10 +3,13 @@ import {
   IsDate,
   IsIn,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxDate,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 export class CreatePetDto {
@@ -34,4 +37,18 @@ export class CreatePetDto {
   @IsDate()
   @MaxDate(new Date(), { message: 'birthDate must be in the past' })
   birthDate?: Date;
+
+  /** Особые приметы: шрамы, повадки, ошейник — помогают опознать питомца */
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  traits?: string;
+
+  /** Вес в килограммах */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  @Max(200)
+  weightKg?: number;
 }

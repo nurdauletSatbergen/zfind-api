@@ -28,6 +28,8 @@ model Pet {
   color String?
   sex PetSex?
   birthDate DateTime?
+  traits String? // особые приметы: шрамы, повадки, ошейник — помогают опознать
+  weightKg Float?
 
   lostEpisodes LostEpisode[]
   sightings Sighting[]
