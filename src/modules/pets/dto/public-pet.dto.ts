@@ -34,6 +34,10 @@ export class PublicPetDto {
   @ApiProperty({ nullable: true, type: Number })
   weightKg: number | null;
 
+  /** Есть ли микрочип — сигнал нашедшему/клинике, что питомца можно отсканировать */
+  @ApiProperty({ nullable: true, type: Boolean })
+  hasMicrochip: boolean | null;
+
   /** только при status === 'LOST' */
   rewardAmount?: string | null;
 

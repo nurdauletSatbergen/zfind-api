@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsDate,
   IsIn,
   IsNotEmpty,
@@ -51,4 +52,9 @@ export class CreatePetDto {
   @Min(0.01)
   @Max(200)
   weightKg?: number;
+
+  /** Есть ли микрочип; не передано = неизвестно */
+  @IsOptional()
+  @IsBoolean()
+  hasMicrochip?: boolean;
 }

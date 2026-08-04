@@ -91,6 +91,7 @@ export class LostModeService {
       age: calculateAge(pet.birthDate),
       traits: pet.traits,
       weightKg: pet.weightKg,
+      hasMicrochip: pet.hasMicrochip,
     };
 
     if (pet.status === 'LOST') {

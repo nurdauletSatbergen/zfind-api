@@ -30,6 +30,7 @@ model Pet {
   birthDate DateTime?
   traits String? // особые приметы: шрамы, повадки, ошейник — помогают опознать
   weightKg Float?
+  hasMicrochip Boolean? // null = не указано; отличается от «чипа нет»
 
   lostEpisodes LostEpisode[]
   sightings Sighting[]

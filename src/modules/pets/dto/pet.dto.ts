@@ -37,6 +37,10 @@ export class PetDto {
   @ApiProperty({ nullable: true, type: Number })
   weightKg: number | null;
 
+  /** Есть ли микрочип; null = не указано */
+  @ApiProperty({ nullable: true, type: Boolean })
+  hasMicrochip: boolean | null;
+
   /** Полных лет, вычисляется из birthDate; null, если дата не указана */
   @ApiProperty({ nullable: true, type: Number })
   age: number | null;
