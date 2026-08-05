@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -17,6 +17,7 @@ import type { JwtPayload } from './interfaces/jwt-payload.interface';
 import { SignInDto } from './dto/sign-in.dto';
 import { AuthTokenDto } from './dto/auth-token.dto';
 import { ProfileDto } from './dto/profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -62,5 +63,20 @@ export class AuthController {
   @Get('profile')
   getProfile(@GetUser() user: JwtPayload) {
     return this.authService.getProfile(user.id);
+  }
+
+  /**
+   * Обновить свой профиль
+   *
+   * @remarks Пользователь определяется по JWT — id в URL не передаётся.
+   * Меняются только имя и телефон; телефон нормализуется к виду
+   * `+7XXXXXXXXXX`, пустая строка удаляет его. Ответ — тот же профиль,
+   * что отдаёт `GET /auth/profile`.
+   */
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: ProfileDto })
+  @Patch('profile')
+  updateProfile(@GetUser() user: JwtPayload, @Body() dto: UpdateProfileDto) {
+    return this.authService.updateProfile(user.id, dto);
   }
 }

@@ -10,13 +10,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
+  ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { SightingThrottlerGuard } from './guards/sighting-throttler.guard';
 import { Public } from '../auth/decorators/public.decorator';
 import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
@@ -85,11 +86,24 @@ export class PetsPublicController {
    * @remarks Для нашедшего, без авторизации; защищено rate-limit.
    * Принимает координаты/адрес, комментарий, телефон и опциональное
    * фото (multipart-поле `photo`). Владелец получает уведомление.
+   *
+   * Статус питомца не важен: жетон сканируют и тогда, когда владелец
+   * ещё не знает о пропаже. Для питомца в `HOME` уведомление приходит
+   * с текстом про скан жетона, для `LOST` — про то, что его видели.
+   *
+   * Лимит считается по паре «IP + код питомца»: 5 сообщений за 10 минут
+   * об одном питомце с одного адреса. Сообщения о разных питомцах друг
+   * друга не блокируют, поэтому `429` здесь означает «вы уже писали об
+   * этом питомце», а не «слишком много запросов вообще».
    */
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(SightingThrottlerGuard)
   @ApiCreatedResponse({ type: SightingCreatedDto })
   @ApiNotFoundResponse({ description: 'Unknown public code' })
+  @ApiTooManyRequestsResponse({
+    description:
+      'Лимит по паре «IP + код питомца»: 5 сообщений об одном питомце за 10 минут',
+  })
   @Post('pets/:code/sightings')
   @UseInterceptors(FileInterceptor('photo'))
   createSighting(

@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '../../generated/prisma/client';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { PrismaService } from '../../libs/database/prisma.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
@@ -64,6 +65,15 @@ export class AuthService {
       }
       throw e;
     }
+  }
+
+  /**
+   * Обновляет профиль текущего пользователя и возвращает его в том же виде,
+   * что и getProfile, — чтобы фронт положил ответ в стор без второго запроса.
+   */
+  async updateProfile(id: number, dto: UpdateProfileDto) {
+    await this.prisma.user.update({ where: { id }, data: { ...dto } });
+    return this.getProfile(id);
   }
 
   async getProfile(id: number) {

@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -32,9 +31,9 @@ export class SightingsService {
       select: { id: true, name: true, status: true, ownerId: true },
     });
     if (!pet) throw new NotFoundException('Pet not found');
-    if (pet.status !== 'LOST') {
-      throw new ConflictException('Pet is not lost');
-    }
+    // Статус НЕ проверяем: жетон сканируют именно тогда, когда питомец
+    // потерялся, а владелец об этом ещё не знает — отказать здесь значит
+    // потерять сообщение в самый нужный момент.
 
     const hasLat = dto.lat != null;
     const hasLng = dto.lng != null;
@@ -78,11 +77,22 @@ export class SightingsService {
       },
     });
 
+    // текст зависит от статуса: «видели» уместно для питомца в поиске,
+    // для домашнего это скан жетона — сигнал, что он, возможно, убежал
+    const isLost = pet.status === 'LOST';
+
     try {
       await this.notificationsService.notifyUser(pet.ownerId, {
         type: 'SIGHTING',
-        title: `🐾 ${pet.name}: питомца видели!`,
-        body: dto.address ?? dto.comment ?? 'Отмечена геолокация',
+        title: isLost
+          ? `🐾 ${pet.name}: питомца видели!`
+          : `🐾 ${pet.name}: кто-то отсканировал жетон`,
+        body:
+          dto.address ??
+          dto.comment ??
+          (isLost
+            ? 'Отмечена геолокация'
+            : 'Возможно, питомец не дома — проверьте сообщение.'),
         data: {
           petId: pet.id,
           sightingId: sighting.id,
