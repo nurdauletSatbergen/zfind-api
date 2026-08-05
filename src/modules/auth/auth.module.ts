@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PrismaModule } from '../../libs/database/prisma.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   providers: [
@@ -32,6 +33,7 @@ import { PrismaModule } from '../../libs/database/prisma.module';
       },
     }),
     PrismaModule,
+    FilesModule,
   ],
 })
 export class AuthModule {}

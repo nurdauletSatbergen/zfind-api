@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -11,13 +13,19 @@ import { Prisma, User } from '../../generated/prisma/client';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private filesService: FilesService,
   ) {}
 
   async validateUser(
@@ -64,6 +72,79 @@ export class AuthService {
         );
       }
       throw e;
+    }
+  }
+
+  /**
+   * Смена пароля с подтверждением текущего.
+   *
+   * Сверка обязательна: без неё перехваченный токен превращается в захват
+   * аккаунта — злоумышленник меняет пароль и запирает владельца.
+   */
+  async changePassword(userId: number, dto: ChangePasswordDto): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (!(await compare(dto.currentPassword, user.password))) {
+      // 400, а НЕ 401: на 401 глобальный интерцептор фронта считает сессию
+      // протухшей и разлогинивает — опечатка в пароле не должна выкидывать
+      // человека из аккаунта посреди смены пароля
+      throw new BadRequestException('Текущий пароль неверен');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: await hash(dto.newPassword, 10) },
+    });
+  }
+
+  /**
+   * Удаление собственного аккаунта.
+   *
+   * Каскад в схеме убирает питомцев, фото-связки, sightings, эпизоды и
+   * уведомления, но строки `File` и объекты в MinIO каскадом НЕ удаляются
+   * (`PetPhoto.file` каскадит в обратную сторону, `Sighting.photo` — SetNull),
+   * поэтому идентификаторы файлов собираются до удаления и чистятся после.
+   */
+  async deleteAccount(userId: number, dto: DeleteAccountDto): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (!(await compare(dto.password, user.password))) {
+      throw new BadRequestException('Пароль неверен');
+    }
+
+    const [petPhotos, sightings] = await Promise.all([
+      this.prisma.petPhoto.findMany({
+        where: { pet: { ownerId: userId } },
+        select: { fileId: true },
+      }),
+      this.prisma.sighting.findMany({
+        where: { pet: { ownerId: userId }, photoFileId: { not: null } },
+        select: { photoFileId: true },
+      }),
+    ]);
+
+    const fileIds = [
+      ...petPhotos.map((photo) => photo.fileId),
+      ...sightings.flatMap((s) =>
+        s.photoFileId != null ? [s.photoFileId] : [],
+      ),
+      ...(user.avatarId != null ? [user.avatarId] : []),
+    ];
+
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    // Аккаунт уже удалён — сбой хранилища оставит мусор в MinIO, но не должен
+    // отменять само удаление, поэтому чистим best-effort с предупреждением.
+    for (const fileId of fileIds) {
+      try {
+        await this.filesService.delete(fileId);
+      } catch (e) {
+        this.logger.warn(
+          `Не удалён файл ${fileId} при удалении аккаунта ${userId}: ${String(e)}`,
+        );
+      }
     }
   }
 

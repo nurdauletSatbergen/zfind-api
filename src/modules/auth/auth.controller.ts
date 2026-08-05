@@ -1,9 +1,20 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -18,6 +29,8 @@ import { SignInDto } from './dto/sign-in.dto';
 import { AuthTokenDto } from './dto/auth-token.dto';
 import { ProfileDto } from './dto/profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -78,5 +91,45 @@ export class AuthController {
   @Patch('profile')
   updateProfile(@GetUser() user: JwtPayload, @Body() dto: UpdateProfileDto) {
     return this.authService.updateProfile(user.id, dto);
+  }
+
+  /**
+   * Сменить пароль
+   *
+   * @remarks Пользователь определяется по JWT. Требуется текущий пароль:
+   * без него перехваченного токена хватало бы, чтобы запереть владельца
+   * в собственном аккаунте. Неверный текущий пароль — `400`, а не `401`:
+   * `401` означает «сессия истекла» и разлогинивает пользователя.
+   * Выданные ранее токены после смены пароля остаются действительными.
+   */
+  @ApiBearerAuth()
+  @ApiNoContentResponse({ description: 'Пароль изменён' })
+  @ApiBadRequestResponse({ description: 'Текущий пароль неверен' })
+  @HttpCode(204)
+  @Patch('password')
+  async changePassword(
+    @GetUser() user: JwtPayload,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.authService.changePassword(user.id, dto);
+  }
+
+  /**
+   * Удалить свой аккаунт
+   *
+   * @remarks Необратимо. Требуется подтверждение текущим паролем.
+   * Вместе с аккаунтом удаляются питомцы, их фотографии, сообщения
+   * очевидцев, эпизоды пропажи и уведомления — включая файлы в хранилище.
+   */
+  @ApiBearerAuth()
+  @ApiNoContentResponse({ description: 'Аккаунт удалён' })
+  @ApiBadRequestResponse({ description: 'Пароль неверен' })
+  @HttpCode(204)
+  @Delete('account')
+  async deleteAccount(
+    @GetUser() user: JwtPayload,
+    @Body() dto: DeleteAccountDto,
+  ): Promise<void> {
+    await this.authService.deleteAccount(user.id, dto);
   }
 }
