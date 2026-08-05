@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -21,7 +22,8 @@ import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
 import { LostModeService } from './lost-mode.service';
 import { SightingsService } from './sightings.service';
 import { CreateSightingDto } from './dto/create-sighting.dto';
-import { PublicPetDto } from './dto/public-pet.dto';
+import { PaginatedPublicPetsDto, PublicPetDto } from './dto/public-pet.dto';
+import { PublicPetsQueryDto } from './dto/public-pets-query.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
 import { SightingCreatedDto } from './dto/sighting.dto';
 
@@ -44,6 +46,23 @@ export class PetsPublicController {
   @Get('stats')
   stats() {
     return this.lostModeService.stats();
+  }
+
+  /**
+   * Лента пропавших питомцев
+   *
+   * @remarks Без авторизации, постранично, от свежих пропаж к старым.
+   * `lat`, `lng` и `radius` (км) работают только вместе и фильтруют по месту
+   * пропажи: в выборку попадает квадрат вокруг точки, а точное расстояние
+   * до каждого питомца возвращается в `distanceKm` — по нему клиент может
+   * отсечь углы квадрата. Питомцы без координат в гео-выборку не попадают.
+   * Телефоны в ленте не отдаются — они есть только на карточке питомца.
+   */
+  @Public()
+  @ApiOkResponse({ type: PaginatedPublicPetsDto })
+  @Get('pets')
+  feed(@Query() query: PublicPetsQueryDto) {
+    return this.lostModeService.publicFeed(query);
   }
 
   /**

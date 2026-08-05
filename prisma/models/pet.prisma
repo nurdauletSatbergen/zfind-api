@@ -56,8 +56,18 @@ model LostEpisode {
   petId Int
   lostAt DateTime @default(now())
   foundAt DateTime?
+  // место пропажи — опционально: владелец часто не знает, где именно потерялся питомец
+  lat Float?
+  lng Float?
+  address String?
+  // телефоны для этого объявления; пустой список = звонить владельцу (user.phone)
+  contactPhones String[]
 
   @@index([petId, lostAt])
+  // публичная лента: активные эпизоды от свежих к старым
+  @@index([foundAt, lostAt])
+  // гео-фильтр ленты по bounding box места пропажи
+  @@index([lat, lng])
   @@map("lost_episodes")
 }
 

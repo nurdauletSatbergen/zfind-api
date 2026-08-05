@@ -12,9 +12,22 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import {
+  AffectedCountDto,
+  BroadcastCreatedDto,
+  BroadcastDto,
+  BroadcastRecalledDto,
+  PaginatedNotificationsDto,
+  UnreadCountDto,
+} from './dto/notification.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
@@ -33,6 +46,7 @@ export class NotificationsController {
    * каждому пользователю указанной роли и шлёт его в realtime через
    * WebSocket.
    */
+  @ApiCreatedResponse({ type: BroadcastCreatedDto })
   @Post('broadcasts')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -48,6 +62,7 @@ export class NotificationsController {
    *
    * @remarks Требует право `notifications:broadcast`.
    */
+  @ApiOkResponse({ type: BroadcastDto, isArray: true })
   @Get('broadcasts')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -61,6 +76,7 @@ export class NotificationsController {
    * @remarks Требует право `notifications:broadcast`. Удаляет уведомления
    * этой рассылки у получателей.
    */
+  @ApiOkResponse({ type: BroadcastRecalledDto })
   @Delete('broadcasts/:id')
   @UseGuards(PermissionsGuard)
   @RequirePermissions('notifications:broadcast')
@@ -71,6 +87,7 @@ export class NotificationsController {
   /**
    * Количество непрочитанных уведомлений
    */
+  @ApiOkResponse({ type: UnreadCountDto })
   @Get('unread-count')
   unreadCount(@GetUser() user: JwtPayload) {
     return this.notificationsService.unreadCount(user.id);
@@ -79,6 +96,7 @@ export class NotificationsController {
   /**
    * Отметить все уведомления прочитанными
    */
+  @ApiOkResponse({ type: AffectedCountDto })
   @Patch('read-all')
   markAllRead(@GetUser() user: JwtPayload) {
     return this.notificationsService.markAllRead(user.id);
@@ -90,6 +108,7 @@ export class NotificationsController {
    * @remarks Постранично, от новых к старым: `page` (с 1) и
    * `limit` (по умолчанию 20).
    */
+  @ApiOkResponse({ type: PaginatedNotificationsDto })
   @Get()
   findAll(
     @GetUser() user: JwtPayload,
@@ -129,6 +148,7 @@ export class NotificationsController {
    * @remarks Без параметров удаляет все; с `?read=true` — только
    * прочитанные.
    */
+  @ApiOkResponse({ type: AffectedCountDto })
   @Delete()
   removeAll(@GetUser() user: JwtPayload, @Query('read') read?: string) {
     return this.notificationsService.removeAll(user.id, read === 'true');
