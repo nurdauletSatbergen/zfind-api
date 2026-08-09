@@ -16,14 +16,14 @@ import {
 import { MAX_PET_PHOTOS, PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
-import { GetUser } from '../auth/decorators/get-user.decorator';
-import { Public } from '../auth/decorators/public.decorator';
-import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { Public } from '../../auth/decorators/public.decorator';
+import type { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
-import { LostModeService } from './lost-mode.service';
-import { SightingsService } from './sightings.service';
-import { ChangeStatusDto } from './dto/change-status.dto';
+import { imageFilePipe } from '../../../shared/pipes/image-file.pipe';
+import { LostModeService } from '../lost-mode/lost-mode.service';
+import { SightingsService } from '../sightings/sightings.service';
+import { ChangeStatusDto } from '../lost-mode/dto/change-status.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -33,8 +33,8 @@ import {
 } from '@nestjs/swagger';
 import { PaginatedPetsDto, PetDto, PetWithPhotosDto } from './dto/pet.dto';
 import { UploadPhotosResultDto } from './dto/pet-photo.dto';
-import { SightingDto } from './dto/sighting.dto';
-import { LostEpisodeDto } from './dto/lost-episode.dto';
+import { SightingDto } from '../sightings/dto/sighting.dto';
+import { LostEpisodeDto } from '../lost-mode/dto/lost-episode.dto';
 
 @ApiTags('pets')
 @Controller('pets')

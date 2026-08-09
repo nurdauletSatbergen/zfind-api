@@ -6,36 +6,15 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { UpdatePetDto } from './dto/update-pet.dto';
-import { PrismaService } from '../../libs/database/prisma.service';
-import { Prisma } from '../../generated/prisma/client';
-import { FilesService } from '../files/files.service';
-import { randomInt } from 'node:crypto';
+import { PrismaService } from '../../../libs/database/prisma.service';
+import { Prisma } from '../../../generated/prisma/client';
+import { FilesService } from '../../files/files.service';
 import { CreatePetDto } from './dto/create-pet.dto';
+import { calculateAge } from '../domain/age';
+import { generatePublicCode } from '../domain/public-code';
 
 export const MAX_PET_PHOTOS = 10;
-const CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const CODE_GENERATION_ATTEMPTS = 10;
-
-export function generatePublicCode(): string {
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
-  }
-  return `${code.slice(0, 3)}-${code.slice(3)}`;
-}
-
-// Возраст не хранится в БД — вычисляется из birthDate, чтобы не протухал
-export function calculateAge(birthDate: Date | null): number | null {
-  if (!birthDate) return null;
-  const now = new Date();
-  let age = now.getFullYear() - birthDate.getFullYear();
-  const beforeBirthday =
-    now.getMonth() < birthDate.getMonth() ||
-    (now.getMonth() === birthDate.getMonth() &&
-      now.getDate() < birthDate.getDate());
-  if (beforeBirthday) age--;
-  return age;
-}
 
 @Injectable()
 export class PetsService {

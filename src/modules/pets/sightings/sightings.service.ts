@@ -4,10 +4,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../libs/database/prisma.service';
-import { FilesService } from '../files/files.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { PetsService } from './pets.service';
+import { PrismaService } from '../../../libs/database/prisma.service';
+import { FilesService } from '../../files/files.service';
+import { NotificationsService } from '../../notifications/notifications.service';
+import { PetsService } from '../core/pets.service';
 import { CreateSightingDto } from './dto/create-sighting.dto';
 
 @Injectable()

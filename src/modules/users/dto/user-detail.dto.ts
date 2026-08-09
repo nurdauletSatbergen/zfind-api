@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserDto } from './user.dto';
 import { UserSettingDto } from './user-setting.dto';
-import { PetDto } from '../../pets/dto/pet.dto';
+import { PetDto } from '../../pets/core/dto/pet.dto';
 
 export class UserSettingSummaryDto {
   smsEnabled: boolean;

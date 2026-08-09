@@ -17,7 +17,7 @@ import {
   KZ_PHONE_MESSAGE,
   KZ_PHONE_REGEX,
   normalizeKzPhone,
-} from '../../../shared/utils/phone';
+} from '../../../../shared/utils/phone';
 
 export const MAX_CONTACT_PHONES = 3;
 

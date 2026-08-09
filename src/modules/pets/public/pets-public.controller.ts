@@ -17,22 +17,22 @@ import {
   ApiTags,
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
-import { SightingThrottlerGuard } from './guards/sighting-throttler.guard';
-import { Public } from '../auth/decorators/public.decorator';
-import { imageFilePipe } from '../../shared/pipes/image-file.pipe';
-import { LostModeService } from './lost-mode.service';
-import { SightingsService } from './sightings.service';
-import { CreateSightingDto } from './dto/create-sighting.dto';
+import { SightingThrottlerGuard } from '../sightings/sighting-throttler.guard';
+import { Public } from '../../auth/decorators/public.decorator';
+import { imageFilePipe } from '../../../shared/pipes/image-file.pipe';
+import { PublicPetsService } from './public-pets.service';
+import { SightingsService } from '../sightings/sightings.service';
+import { CreateSightingDto } from '../sightings/dto/create-sighting.dto';
 import { PaginatedPublicPetsDto, PublicPetDto } from './dto/public-pet.dto';
 import { PublicPetsQueryDto } from './dto/public-pets-query.dto';
 import { PublicStatsDto } from './dto/public-stats.dto';
-import { SightingCreatedDto } from './dto/sighting.dto';
+import { SightingCreatedDto } from '../sightings/dto/sighting.dto';
 
 @ApiTags('public')
 @Controller('public')
 export class PetsPublicController {
   constructor(
-    private readonly lostModeService: LostModeService,
+    private readonly publicPetsService: PublicPetsService,
     private readonly sightingsService: SightingsService,
   ) {}
 
@@ -46,7 +46,7 @@ export class PetsPublicController {
   @ApiOkResponse({ type: PublicStatsDto })
   @Get('stats')
   stats() {
-    return this.lostModeService.stats();
+    return this.publicPetsService.stats();
   }
 
   /**
@@ -63,7 +63,7 @@ export class PetsPublicController {
   @ApiOkResponse({ type: PaginatedPublicPetsDto })
   @Get('pets')
   feed(@Query() query: PublicPetsQueryDto) {
-    return this.lostModeService.publicFeed(query);
+    return this.publicPetsService.publicFeed(query);
   }
 
   /**
@@ -77,7 +77,7 @@ export class PetsPublicController {
   @ApiNotFoundResponse({ description: 'Unknown public code' })
   @Get('pets/:code')
   publicCard(@Param('code') code: string) {
-    return this.lostModeService.publicCard(code);
+    return this.publicPetsService.publicCard(code);
   }
 
   /**
