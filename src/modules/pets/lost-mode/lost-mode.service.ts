@@ -17,9 +17,17 @@ export class LostModeService {
     private petsService: PetsService,
   ) {}
 
-  // HOME → LOST: открыть эпизод (+ опц. reward); LOST → HOME: закрыть эпизод, обнулить reward.
-  // Инвариант «≤1 активного эпизода» держится тем, что оба изменения идут одной транзакцией,
-  // а вход в LOST возможен только из HOME (тот же статус → 400).
+  /**
+   * HOME → LOST: открыть эпизод (+ опц. reward); LOST → HOME: закрыть эпизод,
+   * обнулить reward.
+   *
+   * Инвариант «≤1 активного эпизода» держится условным апдейтом: смена статуса
+   * идёт через updateMany с ожидаемым статусом в where, и ноль затронутых строк
+   * означает, что параллельный запрос нас опередил. Простой проверки прочитанного
+   * статуса тут мало — два одновременных перехода в LOST оба увидели бы HOME и
+   * оба создали бы эпизод. Проверка ниже осталась ради внятного ответа в обычном
+   * случае, гарантию даёт БД.
+   */
   async changeStatus(petId: number, userId: number, dto: ChangeStatusDto) {
     const pet = await this.petsService.findOwnedPet(petId, userId);
 
@@ -48,12 +56,18 @@ export class LostModeService {
         throw new BadRequestException('lat и lng передаются вместе');
       }
 
-      const [updated] = await this.prisma.$transaction([
-        this.prisma.pet.update({
-          where: { id: petId },
+      // интерактивная транзакция, а не массив: исключение внутри неё
+      // откатывает уже созданный эпизод, если гонку выиграл не этот запрос
+      return this.prisma.$transaction(async (tx) => {
+        const { count } = await tx.pet.updateMany({
+          where: { id: petId, status: 'HOME' },
           data: { status: 'LOST', rewardAmount: dto.rewardAmount ?? null },
-        }),
-        this.prisma.lostEpisode.create({
+        });
+        if (count === 0) {
+          throw new BadRequestException('Pet is already in status LOST');
+        }
+
+        await tx.lostEpisode.create({
           data: {
             petId,
             lostAt: dto.lostAt,
@@ -62,22 +76,28 @@ export class LostModeService {
             address: dto.address,
             contactPhones: dto.contactPhones ?? [],
           },
-        }),
-      ]);
-      return updated;
+        });
+
+        return tx.pet.findUniqueOrThrow({ where: { id: petId } });
+      });
     }
 
-    const [updated] = await this.prisma.$transaction([
-      this.prisma.pet.update({
-        where: { id: petId },
+    return this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.pet.updateMany({
+        where: { id: petId, status: 'LOST' },
         data: { status: 'HOME', rewardAmount: null },
-      }),
-      this.prisma.lostEpisode.updateMany({
+      });
+      if (count === 0) {
+        throw new BadRequestException('Pet is already in status HOME');
+      }
+
+      await tx.lostEpisode.updateMany({
         where: { petId, foundAt: null },
         data: { foundAt: new Date() },
-      }),
-    ]);
-    return updated;
+      });
+
+      return tx.pet.findUniqueOrThrow({ where: { id: petId } });
+    });
   }
 
   async listEpisodes(petId: number, userId: number) {

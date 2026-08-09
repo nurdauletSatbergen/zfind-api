@@ -36,7 +36,9 @@ export class CreatePetDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  @MaxDate(new Date(), { message: 'birthDate must be in the past' })
+  // фабрика, а не new Date(): значение-аргумент вычислилось бы один раз при
+  // загрузке класса и навсегда осталось моментом старта процесса
+  @MaxDate(() => new Date(), { message: 'birthDate must be in the past' })
   birthDate?: Date;
 
   /** Особые приметы: шрамы, повадки, ошейник — помогают опознать питомца */

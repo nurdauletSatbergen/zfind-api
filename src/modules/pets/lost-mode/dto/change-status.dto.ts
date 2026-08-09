@@ -36,7 +36,9 @@ export class ChangeStatusDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  @MaxDate(new Date(), { message: 'lostAt не может быть в будущем' })
+  // фабрика, а не new Date(): иначе граница замирает на моменте старта
+  // процесса и через сутки аптайма отвергает любое честное «сейчас»
+  @MaxDate(() => new Date(), { message: 'lostAt не может быть в будущем' })
   lostAt?: Date;
 
   /** Широта предполагаемого места пропажи; передаётся вместе с lng */

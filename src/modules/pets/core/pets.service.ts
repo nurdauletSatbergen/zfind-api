@@ -79,7 +79,14 @@ export class PetsService {
     return { items, total, page, limit };
   }
 
-  async findOne(id: number) {
+  /**
+   * Полная карточка питомца — только владельцу.
+   *
+   * Анониму соответствует публичная карточка по коду с жетона: она усечена и
+   * не раскрывает publicCode, rewardAmount и ownerId. Здесь проверка владения
+   * сделана после выборки, а не через findOwnedPet, чтобы не ходить в БД дважды.
+   */
+  async findOne(id: number, userId: number) {
     const pet = await this.prisma.pet.findUnique({
       where: { id },
       include: {
@@ -91,6 +98,9 @@ export class PetsService {
     });
 
     if (!pet) throw new NotFoundException(`Pet with ID ${id} not found`);
+    if (pet.ownerId !== userId) {
+      throw new ForbiddenException('You are not the owner of this pet');
+    }
 
     const { photos, ...rest } = pet;
 

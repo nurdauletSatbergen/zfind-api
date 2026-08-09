@@ -17,7 +17,6 @@ import { MAX_PET_PHOTOS, PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
-import { Public } from '../../auth/decorators/public.decorator';
 import type { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { imageFilePipe } from '../../../shared/pipes/image-file.pipe';
@@ -27,6 +26,7 @@ import { ChangeStatusDto } from '../lost-mode/dto/change-status.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
@@ -78,16 +78,20 @@ export class PetsController {
   /**
    * Питомец по id с фотографиями
    *
-   * @remarks Фото отсортированы по позиции, для каждого — готовый URL.
+   * @remarks Только владелец. Фото отсортированы по позиции, для каждого —
+   * готовый URL. Анониму предназначена публичная карточка по коду с жетона
+   * (`GET /public/pets/{code}`): она усечена и не раскрывает `publicCode`,
+   * `rewardAmount` и `ownerId`.
    */
-  @Public()
+  @ApiBearerAuth()
   @ApiOkResponse({ type: PetWithPhotosDto })
+  @ApiForbiddenResponse({
+    description: 'Питомец принадлежит другому владельцу',
+  })
   @ApiNotFoundResponse()
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    // TODO: findOne публичный и отдаёт сущность целиком (publicCode,
-    // rewardAmount) — сузить выдачу/закрыть авторизацией отдельной задачей
-    return this.petsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number, @GetUser() user: JwtPayload) {
+    return this.petsService.findOne(id, user.id);
   }
 
   /**
