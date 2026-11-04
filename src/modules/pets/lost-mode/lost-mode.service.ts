@@ -58,7 +58,7 @@ export class LostModeService {
 
       // интерактивная транзакция, а не массив: исключение внутри неё
       // откатывает уже созданный эпизод, если гонку выиграл не этот запрос
-      return this.prisma.$transaction(async (tx) => {
+      const lost = await this.prisma.$transaction(async (tx) => {
         const { count } = await tx.pet.updateMany({
           where: { id: petId, status: 'HOME' },
           data: { status: 'LOST', rewardAmount: dto.rewardAmount ?? null },
@@ -80,9 +80,10 @@ export class LostModeService {
 
         return tx.pet.findUniqueOrThrow({ where: { id: petId } });
       });
+      return this.petsService.withOwnerStats(lost);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const home = await this.prisma.$transaction(async (tx) => {
       const { count } = await tx.pet.updateMany({
         where: { id: petId, status: 'LOST' },
         data: { status: 'HOME', rewardAmount: null },
@@ -98,6 +99,7 @@ export class LostModeService {
 
       return tx.pet.findUniqueOrThrow({ where: { id: petId } });
     });
+    return this.petsService.withOwnerStats(home);
   }
 
   async listEpisodes(petId: number, userId: number) {

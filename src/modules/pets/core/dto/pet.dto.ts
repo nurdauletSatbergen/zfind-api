@@ -44,6 +44,28 @@ export class PetDto {
   /** Полных лет, вычисляется из birthDate; null, если дата не указана */
   @ApiProperty({ nullable: true, type: Number })
   age: number | null;
+
+  /**
+   * Начало открытого эпизода пропажи (ISO); null, если питомец дома
+   */
+  @ApiProperty({ nullable: true, type: String, format: 'date-time' })
+  lostAt: string | null;
+
+  /** Сколько всего сообщений «видели питомца» */
+  sightingsCount: number;
+
+  /**
+   * Сколько сообщений создано позже `sightingsSeenAt`; пока владелец их не
+   * открывал (`sightingsSeenAt: null`) — все
+   */
+  newSightingsCount: number;
+
+  /**
+   * Когда владелец последний раз отметил сообщения просмотренными
+   * (`POST /pets/:id/sightings/seen`); null — ни разу
+   */
+  @ApiProperty({ nullable: true, type: Date })
+  sightingsSeenAt: Date | null;
 }
 
 export class PetWithPhotosDto extends PetDto {

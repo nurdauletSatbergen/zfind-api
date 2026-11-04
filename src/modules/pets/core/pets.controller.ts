@@ -24,15 +24,18 @@ import { LostModeService } from '../lost-mode/lost-mode.service';
 import { SightingsService } from '../sightings/sightings.service';
 import { ChangeStatusDto } from '../lost-mode/dto/change-status.dto';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { PaginatedPetsDto, PetDto, PetWithPhotosDto } from './dto/pet.dto';
-import { UploadPhotosResultDto } from './dto/pet-photo.dto';
+import { PetPhotoDto, UploadPhotosResultDto } from './dto/pet-photo.dto';
+import { ReorderPhotosDto } from './dto/reorder-photos.dto';
 import { SightingDto } from '../sightings/dto/sighting.dto';
 import { LostEpisodeDto } from '../lost-mode/dto/lost-episode.dto';
 
@@ -62,7 +65,8 @@ export class PetsController {
    * Мои питомцы
    *
    * @remarks Только питомцы текущего пользователя, постранично,
-   * от новых к старым: `page` (с 1) и `limit` (по умолчанию 20).
+   * `LOST` первыми, затем от новых к старым: `page` (с 1) и `limit`
+   * (по умолчанию 20).
    */
   @ApiBearerAuth()
   @ApiOkResponse({ type: PaginatedPetsDto })
@@ -149,6 +153,25 @@ export class PetsController {
   }
 
   /**
+   * Отметить сообщения питомца просмотренными
+   *
+   * @remarks Только владелец. Сохраняет `sightingsSeenAt = now()` (после
+   * этого `newSightingsCount` питомца обнуляется) и помечает прочитанными
+   * непрочитанные уведомления о находках этого питомца.
+   */
+  @ApiBearerAuth()
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse()
+  @Post(':id/sightings/seen')
+  @HttpCode(204)
+  markSightingsSeen(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: JwtPayload,
+  ) {
+    return this.sightingsService.markSeen(id, user.id);
+  }
+
+  /**
    * История эпизодов пропажи питомца
    *
    * @remarks Только владелец. Открытый эпизод имеет `foundAt: null`.
@@ -194,6 +217,31 @@ export class PetsController {
     @UploadedFiles(imageFilePipe()) files: Express.Multer.File[],
   ) {
     return this.petsService.addPhotos(id, user.id, files);
+  }
+
+  /**
+   * Изменить порядок фотографий питомца
+   *
+   * @remarks Только владелец. В `photoIds` — id всех фото питомца в новом
+   * порядке, первое становится обложкой (`coverUrl`). Набор id должен точно
+   * совпадать с фото питомца, иначе 400. Ответ — фото в новом порядке.
+   */
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: PetPhotoDto, isArray: true })
+  @ApiBadRequestResponse({
+    description: 'Список фото не совпадает с фото питомца',
+  })
+  @ApiForbiddenResponse({
+    description: 'Питомец принадлежит другому владельцу',
+  })
+  @ApiNotFoundResponse()
+  @Patch(':id/photos/order')
+  reorderPhotos(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: JwtPayload,
+    @Body() dto: ReorderPhotosDto,
+  ) {
+    return this.petsService.reorderPhotos(id, user.id, dto.photoIds);
   }
 
   /**

@@ -31,6 +31,8 @@ model Pet {
   traits String? // особые приметы: шрамы, повадки, ошейник — помогают опознать
   weightKg Float?
   hasMicrochip Boolean? // null = не указано; отличается от «чипа нет»
+  // когда владелец последний раз открыл сообщения «видели питомца»; null = ещё не открывал
+  sightingsSeenAt DateTime?
 
   lostEpisodes LostEpisode[]
   sightings Sighting[]

@@ -123,4 +123,33 @@ export class SightingsService {
       })),
     );
   }
+
+  /**
+   * Владелец открыл сообщения питомца: сбрасывает счётчик «новых» и гасит
+   * колокольчик по этому питомцу.
+   *
+   * @remarks Одна транзакция: `sightingsSeenAt = now()` у питомца и `readAt =
+   * now()` у непрочитанных уведомлений SIGHTING этого владельца с
+   * `data.petId = petId` (`data` — Json, фильтр по пути). `GET .../sightings`
+   * остаётся чтением без побочных эффектов.
+   */
+  async markSeen(petId: number, userId: number) {
+    await this.petsService.findOwnedPet(petId, userId);
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.pet.update({
+        where: { id: petId },
+        data: { sightingsSeenAt: now },
+      }),
+      this.prisma.notification.updateMany({
+        where: {
+          userId,
+          type: 'SIGHTING',
+          readAt: null,
+          data: { path: ['petId'], equals: petId },
+        },
+        data: { readAt: now },
+      }),
+    ]);
+  }
 }
