@@ -5,8 +5,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../libs/database/prisma.service';
 import { NotificationsGateway } from './notifications.gateway';
-import { Prisma, NotificationType } from '../../generated/prisma/client';
+import {
+  Prisma,
+  NotificationType,
+  type Notification,
+} from '../../generated/prisma/client';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 export const NOTIFICATION_RETENTION_DAYS = 90;
@@ -18,15 +23,22 @@ export class NotificationsService {
     private gateway: NotificationsGateway,
   ) {}
 
-  async findAllFor(userId: number, page: number, limit: number) {
+  async findAllFor(userId: number, query: ListNotificationsQueryDto) {
+    const { page, limit, type, unread } = query;
+    // фильтры необязательные; `total` считается с теми же, что и список
+    const where: Prisma.NotificationWhereInput = {
+      userId,
+      ...(type ? { type } : {}),
+      ...(unread ? { readAt: null } : {}),
+    };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.notification.findMany({
-        where: { userId },
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.notification.count({ where: { userId } }),
+      this.prisma.notification.count({ where }),
     ]);
     return { items, total, page, limit };
   }
@@ -69,14 +81,7 @@ export class NotificationsService {
   async broadcast(createdById: number, dto: CreateBroadcastDto) {
     const role = await this.prisma.role.findUnique({
       where: { name: dto.roleName },
-      select: {
-        users: {
-          select: {
-            id: true,
-            userSetting: { select: { notificationsOn: true } },
-          },
-        },
-      },
+      select: { users: { select: { id: true } } },
     });
     if (!role) throw new NotFoundException('Role not found');
 
@@ -99,20 +104,14 @@ export class NotificationsService {
           data: (dto.data ?? undefined) as Prisma.InputJsonValue | undefined,
           broadcastId: broadcast.id,
         })),
-        select: { id: true, userId: true },
       });
 
-      const idByUser = new Map(created.map((n) => [n.userId, n.id]));
-      for (const u of role.users) {
-        if (!u.userSetting?.notificationsOn) continue;
-        this.gateway.sendToUser(u.id, {
-          id: idByUser.get(u.id),
-          type: 'ANNOUNCEMENT',
-          title: dto.title,
-          body: dto.body,
-          data: dto.data ?? null,
-          createdAt: broadcast.createdAt,
-        });
+      // В сокет — каждому получателю, флаг `userSetting.notificationsOn`
+      // здесь не проверяется (решение владельца 2026-11-05): экрана настроек
+      // нет, а рассылка приходит без тоста — только счётчик. Поле остаётся в
+      // базе под будущие push-уведомления.
+      for (const n of created) {
+        this.gateway.sendToUser(n.userId, this.toSocketPayload(n));
       }
     }
 
@@ -170,14 +169,23 @@ export class NotificationsService {
         data: input.data,
       },
     });
-    this.gateway.sendToUser(userId, {
-      id: notification.id,
-      type: notification.type,
-      title: notification.title,
-      body: notification.body,
-      data: input.data ?? null,
-      createdAt: notification.createdAt,
-    });
+    this.gateway.sendToUser(userId, this.toSocketPayload(notification));
     return notification;
+  }
+
+  // Событие сокета `notification` — ровно элемент списка `GET /notifications`
+  // (`NotificationDto`), чтобы клиент вставлял его в список без запроса.
+  private toSocketPayload(n: Notification) {
+    return {
+      id: n.id,
+      userId: n.userId,
+      type: n.type,
+      title: n.title,
+      body: n.body,
+      data: n.data,
+      readAt: n.readAt,
+      createdAt: n.createdAt,
+      broadcastId: n.broadcastId,
+    };
   }
 }

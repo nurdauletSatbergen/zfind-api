@@ -40,12 +40,9 @@ export class SightingsService {
     if (hasLat !== hasLng) {
       throw new BadRequestException('lat and lng must be provided together');
     }
-    // правило минимума: гео | адрес | комментарий (фото/телефон недостаточны)
-    if (!hasLat && !dto.address && !dto.comment) {
-      throw new BadRequestException(
-        'Provide at least coordinates, address or comment',
-      );
-    }
+    // Обязательных полей нет: нашедший может отправить и пустое сообщение —
+    // сам факт скана жетона уже сигнал для владельца. Ограничения — только
+    // «lat и lng вместе» (выше) и rate-limit по паре «IP + код» (guard).
 
     // мягкая деградация: сбой S3 не роняет создание sighting
     let photoFileId: number | null = null;
@@ -88,16 +85,21 @@ export class SightingsService {
           ? `🐾 ${pet.name}: питомца видели!`
           : `🐾 ${pet.name}: кто-то отсканировал жетон`,
         body:
-          dto.address ??
-          dto.comment ??
+          dto.address?.trim() ||
+          dto.comment?.trim() ||
           (isLost
-            ? 'Отмечена геолокация'
+            ? hasLat
+              ? 'Отмечена геолокация'
+              : 'Нашедший оставил сообщение — откройте его в кабинете.'
             : 'Возможно, питомец не дома — проверьте сообщение.'),
         data: {
           petId: pet.id,
           sightingId: sighting.id,
           lat: dto.lat ?? null,
           lng: dto.lng ?? null,
+          // статус на момент сообщения: по нему клиент выбирает иконку и
+          // вид тоста, не разбирая текст заголовка
+          petStatus: pet.status,
         },
       });
     } catch (e) {

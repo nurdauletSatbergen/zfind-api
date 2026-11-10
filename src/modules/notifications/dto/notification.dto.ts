@@ -14,7 +14,10 @@ export class NotificationDto {
 
   /**
    * Полезная нагрузка под тип уведомления.
-   * Для `SIGHTING`: `{ petId, sightingId, lat, lng }`.
+   * Для `SIGHTING`: `{ petId, sightingId, lat, lng, petStatus }`, где
+   * `petStatus` (`LOST` | `HOME`) — статус питомца на момент сообщения;
+   * у старых уведомлений поля нет. Для `ANNOUNCEMENT`: `url` (необязательная
+   * ссылка «Подробнее»).
    */
   @ApiProperty({ nullable: true, type: Object })
   data: Record<string, unknown> | null;

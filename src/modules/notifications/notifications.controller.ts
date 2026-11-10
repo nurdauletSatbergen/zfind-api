@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
@@ -20,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import { ListNotificationsQueryDto } from './dto/list-notifications-query.dto';
 import {
   AffectedCountDto,
   BroadcastCreatedDto,
@@ -106,16 +106,17 @@ export class NotificationsController {
    * Уведомления текущего пользователя
    *
    * @remarks Постранично, от новых к старым: `page` (с 1) и
-   * `limit` (по умолчанию 20).
+   * `limit` (по умолчанию 20). Необязательные фильтры: `type`
+   * (`SIGHTING` | `ANNOUNCEMENT`) и `unread=true` (только непрочитанные);
+   * `total` считается с теми же фильтрами.
    */
   @ApiOkResponse({ type: PaginatedNotificationsDto })
   @Get()
   findAll(
     @GetUser() user: JwtPayload,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query() query: ListNotificationsQueryDto,
   ) {
-    return this.notificationsService.findAllFor(user.id, page, limit);
+    return this.notificationsService.findAllFor(user.id, query);
   }
 
   /**
